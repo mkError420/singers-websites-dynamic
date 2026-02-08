@@ -6,7 +6,7 @@ require_once __DIR__ . '/includes/functions.php';
 // Get latest songs and tour dates for home page
 $latestSongs = get_songs(3);
 $upcomingTourDates = get_tour_dates(true, 3);
-$latestVideos = get_videos(2); // Get last 2 videos of any type
+$latestVideos = get_videos(3); // Get last 3 videos of any type
 ?>
 
 <!-- Hero Section -->
@@ -713,7 +713,6 @@ $latestVideos = get_videos(2); // Get last 2 videos of any type
                              onclick="openVideoModal('<?php echo $video['video_url']; ?>', '<?php echo xss_clean($video['title']); ?>', '<?php echo xss_clean($video['description']); ?>')">
                         <div class="video-info">
                             <h3 class="video-title"><?php echo xss_clean($video['title']); ?></h3>
-                            <p class="video-description"><?php echo truncate_text(xss_clean($video['description']), 100); ?></p>
                         </div>
                     </div>
                 <?php endforeach; ?>
