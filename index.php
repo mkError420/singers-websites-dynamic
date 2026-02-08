@@ -6,7 +6,7 @@ require_once __DIR__ . '/includes/functions.php';
 // Get latest songs and tour dates for home page
 $latestSongs = get_songs(3);
 $upcomingTourDates = get_tour_dates(true, 3);
-$latestVideos = get_videos(2);
+$latestVideos = get_videos(2); // Get last 2 videos of any type
 ?>
 
 <!-- Hero Section -->
@@ -448,16 +448,40 @@ $latestVideos = get_videos(2);
 
 .no-content {
     text-align: center;
-    padding: 2rem 1.5rem;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 12px;
+    padding: 4rem 2rem;
+    background: linear-gradient(135deg, rgba(255, 107, 107, 0.1), rgba(0, 0, 0, 0.2));
+    border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+}
+
+.no-content h3 {
+    color: var(--text-primary);
+    font-size: 1.8rem;
+    margin: 0 0 0.5rem 0;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .no-content p {
     color: var(--text-secondary);
-    font-size: 0.95rem;
+    font-size: 1.1rem;
     margin: 0;
+    opacity: 0.9;
+}
+
+.no-content .icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.6;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
 }
 
 /* Responsive Design */
@@ -675,7 +699,7 @@ $latestVideos = get_videos(2);
     <div class="container">
         <div class="section-title">
             <h2>Latest Videos</h2>
-            <p>Watch the latest music videos and performances</p>
+            <p>Watch the most recent videos from our collection</p>
         </div>
         
         <div class="video-grid">
@@ -685,7 +709,8 @@ $latestVideos = get_videos(2);
                         <img src="<?php echo APP_URL . '/' . ($video['thumbnail'] ?: 'assets/images/default-video.jpg'); ?>" 
                              alt="<?php echo xss_clean($video['title']); ?>" 
                              class="video-thumbnail"
-                             data-video-url="<?php echo $video['video_url']; ?>">
+                             data-video-url="<?php echo $video['video_url']; ?>"
+                             onclick="openVideoModal('<?php echo $video['video_url']; ?>', '<?php echo xss_clean($video['title']); ?>', '<?php echo xss_clean($video['description']); ?>')">
                         <div class="video-info">
                             <h3 class="video-title"><?php echo xss_clean($video['title']); ?></h3>
                             <p class="video-description"><?php echo truncate_text(xss_clean($video['description']), 100); ?></p>
@@ -694,6 +719,10 @@ $latestVideos = get_videos(2);
                 <?php endforeach; ?>
             <?php else: ?>
                 <div class="no-content">
+                    <div class="icon">
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <h3>No videos found</h3>
                     <p>No videos available yet. Check back soon!</p>
                 </div>
             <?php endif; ?>
@@ -713,7 +742,443 @@ $latestVideos = get_videos(2);
     </div>
 </section>
 
-<!-- Upcoming Tour Dates Section -->
+<!-- Video Modal -->
+<div id="videoModal" class="video-modal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <div class="video-container">
+            <iframe id="modalVideo" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+        <div class="modal-info">
+            <h3 id="modalVideoTitle"></h3>
+            <p id="modalVideoDescription"></p>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="closeVideoModal()">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Video Modal Function
+function openVideoModal(videoUrl, title, description) {
+    const videoModal = document.getElementById('videoModal');
+    const modalVideo = document.getElementById('modalVideo');
+    
+    // Convert YouTube URL to embed format
+    let embedUrl = videoUrl;
+    
+    try {
+        if (videoUrl.includes('m.youtube.com/watch?v=')) {
+            // Mobile YouTube URL
+            const videoId = videoUrl.split('v=')[1]?.split('&')[0];
+            if (videoId) {
+                embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1`;
+            }
+        } else if (videoUrl.includes('youtube.com/watch?v=')) {
+            // Standard YouTube URL
+            const videoId = videoUrl.split('v=')[1]?.split('&')[0];
+            if (videoId) {
+                embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1`;
+            }
+        } else if (videoUrl.includes('youtu.be/')) {
+            // Short YouTube URL
+            const videoId = videoUrl.split('youtu.be/')[1]?.split('?')[0];
+            if (videoId) {
+                embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1`;
+            }
+        } else if (videoUrl.includes('youtube.com/embed/')) {
+            // Already embed format
+            const baseUrl = videoUrl.split('?')[0];
+            embedUrl = `${baseUrl}?autoplay=1`;
+        } else if (videoUrl.includes('vimeo.com/')) {
+            // Vimeo URL
+            const videoId = videoUrl.split('vimeo.com/')[1]?.split('?')[0];
+            if (videoId) {
+                embedUrl = `https://player.vimeo.com/video/${videoId}?autoplay=1`;
+            }
+        } else if (videoUrl.includes('uploads/videos/')) {
+            // Uploaded video file
+            embedUrl = videoUrl;
+        }
+        
+        // Set video info and open modal
+        document.getElementById('modalVideoTitle').textContent = title;
+        document.getElementById('modalVideoDescription').textContent = description;
+        
+        if (embedUrl.includes('uploads/videos/')) {
+            // HTML5 video for uploaded files
+            const videoContainer = document.querySelector('.video-container');
+            videoContainer.innerHTML = `
+                <video controls autoplay style="width: 100%; height: 100%;">
+                    <source src="${embedUrl}" type="video/mp4">
+                    <source src="${embedUrl}" type="video/webm">
+                    <source src="${embedUrl}" type="video/ogg">
+                    Your browser does not support the video tag.
+                </video>
+            `;
+        } else {
+            // iframe for YouTube/Vimeo
+            modalVideo.src = embedUrl;
+        }
+        
+        videoModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        
+    } catch (error) {
+        console.error('Error loading video:', error);
+    }
+}
+
+function closeVideoModal() {
+    const videoModal = document.getElementById('videoModal');
+    const modalVideo = document.getElementById('modalVideo');
+    
+    if (modalVideo) {
+        modalVideo.src = '';
+    }
+    
+    // Clear video container
+    const videoContainer = document.querySelector('.video-container');
+    videoContainer.innerHTML = '<iframe id="modalVideo" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+    
+    videoModal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+// Close modal events
+document.addEventListener('DOMContentLoaded', function() {
+    const closeModal = document.querySelector('.close-modal');
+    const videoModal = document.getElementById('videoModal');
+    
+    if (closeModal) {
+        closeModal.addEventListener('click', closeVideoModal);
+    }
+    
+    videoModal.addEventListener('click', function(e) {
+        if (e.target === videoModal) {
+            closeVideoModal();
+        }
+    });
+    
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && videoModal.style.display === 'flex') {
+            closeVideoModal();
+        }
+    });
+});
+</script>
+
+<style>
+/* Video Section Styles */
+.video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.video-item {
+    background: linear-gradient(135deg, var(--dark-secondary) 0%, var(--dark-tertiary) 100%);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+}
+
+.video-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+    background-size: 200% 100%;
+    animation: shimmerGradient 3s linear infinite;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.video-item:hover::before {
+    opacity: 1;
+}
+
+@keyframes shimmerGradient {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.video-item:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(255, 107, 107, 0.2);
+    border-color: rgba(255, 107, 107, 0.3);
+}
+
+.video-thumbnail-container {
+    position: relative;
+    overflow: hidden;
+}
+
+.video-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.video-item:hover .video-overlay {
+    opacity: 1;
+}
+
+.video-item.playing .video-overlay {
+    display: none;
+}
+
+.play-button {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, var(--primary-color), #ff6b6b);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-primary);
+    font-size: 1.8rem;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+    backdrop-filter: blur(10px);
+    z-index: 10;
+}
+
+.play-button:hover {
+    transform: translate(-50%, -50%) scale(1.15);
+    background: linear-gradient(135deg, #ff6b6b, var(--primary-color));
+    box-shadow: 0 12px 35px rgba(255, 107, 107, 0.5);
+}
+
+.play-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.play-button:hover::before {
+    opacity: 1;
+}
+
+.video-item.playing .play-button {
+    background: linear-gradient(135deg, #ff6b6b, #ff4757);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.1); }
+    100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+.video-duration {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.video-info {
+    padding: 2rem;
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.video-title {
+    font-size: 1.3rem;
+    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    line-height: 1.3;
+}
+
+.video-description {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin-bottom: 1.25rem;
+    line-height: 1.6;
+    opacity: 0.9;
+}
+
+.video-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 0;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.video-views {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.video-views::before {
+    content: '👁';
+    font-size: 1rem;
+}
+
+.video-date {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.video-date::before {
+    content: '📅';
+    font-size: 1rem;
+}
+
+.video-modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: var(--dark-secondary);
+    border-radius: 15px;
+    max-width: 900px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.close-modal {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 2rem;
+    color: var(--text-primary);
+    cursor: pointer;
+    z-index: 1;
+    background: rgba(0, 0, 0, 0.5);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.video-container {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+}
+
+.video-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.modal-info {
+    padding: 2rem;
+}
+
+.modal-info h3 {
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.modal-info p {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.modal-actions .btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.modal-actions .btn i {
+    font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+    .video-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 1rem;
+    }
+    
+    .modal-actions {
+        flex-direction: column;
+    }
+}
+</style>
+
 <section id="tour" class="section">
     <div class="container">
         <div class="section-title">
