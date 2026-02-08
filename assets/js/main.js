@@ -44,6 +44,20 @@ function initNavigation() {
         });
     }
     
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', function(e) {
+        if (navLinks.classList.contains('active')) {
+            const isClickInsideMenu = navLinks.contains(e.target);
+            const isClickOnToggle = mobileMenuToggle.contains(e.target);
+            
+            if (!isClickInsideMenu && !isClickOnToggle) {
+                navLinks.classList.remove('active');
+                mobileMenuToggle.classList.remove('active');
+                body.classList.remove('no-scroll');
+            }
+        }
+    });
+    
     // Close mobile menu when clicking on a link
     const navItems = document.querySelectorAll('.nav-link');
     navItems.forEach(item => {
@@ -88,7 +102,7 @@ function initNavigation() {
         }
     });
     
-    // Active navigation highlighting based on current page
+    // Active navigation highlighting based on current page only
     function updateActiveNavigation() {
         const currentPage = window.location.pathname;
         const currentPageName = currentPage.split('/').pop().replace('.php', '');
@@ -111,31 +125,8 @@ function initNavigation() {
     // Call once on page load
     updateActiveNavigation();
     
-    // Also update on scroll for index.php (home page) sections
-    window.addEventListener('scroll', function() {
-        // Only use scroll-based active state on index.php
-        if (window.location.pathname.endsWith('index.php') || 
-            window.location.pathname.endsWith('/') ||
-            !window.location.pathname.includes('.php')) {
-            
-            let current = '';
-            sections.forEach(section => {
-                const sectionTop = section.offsetTop;
-                const sectionHeight = section.clientHeight;
-                
-                if (scrollY >= (sectionTop - 200)) {
-                    current = section.getAttribute('id');
-                }
-            });
-            
-            navLinksArray.forEach(link => {
-                link.classList.remove('active');
-                if (link.getAttribute('href') === `#${current}`) {
-                    link.classList.add('active');
-                }
-            });
-        }
-    });
+    // Remove scroll-based active state changes - keep page-based active state
+    // This ensures navigation stays active based on current page, not scroll position
     
     // Theme toggle functionality
     if (themeToggle) {

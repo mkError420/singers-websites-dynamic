@@ -11,12 +11,22 @@ require_login();
 $total_songs = fetchOne("SELECT COUNT(*) as count FROM songs")['count'];
 $total_videos = fetchOne("SELECT COUNT(*) as count FROM videos")['count'];
 $total_tour_dates = fetchOne("SELECT COUNT(*) as count FROM tour_dates")['count'];
-$total_messages = fetchOne("SELECT COUNT(*) as count FROM contact_messages WHERE is_read = 0")['count'];
-$total_subscribers = fetchOne("SELECT COUNT(*) as count FROM newsletter_subscribers")['count'];
+$total_messages = fetchOne("SELECT COUNT(*) as count FROM contact_messages WHERE is_read = FALSE")['count'];
+$total_subscribers = fetchOne("SELECT COUNT(*) as count FROM newsletter_subscribers WHERE is_active = TRUE")['count'];
 
 // Get recent activity
 $recent_songs = fetchAll("SELECT * FROM songs ORDER BY created_at DESC LIMIT 5");
 $recent_messages = fetchAll("SELECT * FROM contact_messages ORDER BY created_at DESC LIMIT 5");
+
+// Handle success messages
+if (isset($_GET['album_updated'])) {
+    $success_message = "Album '" . xss_clean($_GET['album_updated']) . "' updated successfully! " . $_GET['rows'] . " songs affected.";
+} elseif (isset($_GET['album_deleted'])) {
+    $success_message = "Album '" . xss_clean($_GET['album_deleted']) . "' deleted successfully! " . $_GET['rows'] . " songs removed.";
+} else {
+    $success_message = '';
+}
+
 $upcoming_tours = fetchAll("SELECT * FROM tour_dates WHERE event_date >= CURDATE() ORDER BY event_date ASC LIMIT 5");
 ?>
 
@@ -230,6 +240,88 @@ $upcoming_tours = fetchAll("SELECT * FROM tour_dates WHERE event_date >= CURDATE
             margin-top: 2rem;
         }
         
+        .albums-section {
+            margin-top: 3rem;
+        }
+        
+        .albums-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+        
+        .album-card {
+            background: var(--dark-secondary);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            box-shadow: var(--shadow-md);
+        }
+        
+        .album-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .album-cover {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .album-info {
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .album-info h4 {
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            font-size: 1.2rem;
+        }
+        
+        .album-info p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+        
+        .album-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+        
+        .album-actions .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+            text-decoration: none;
+        }
+        
+        .album-actions .btn-primary {
+            background: var(--primary-color);
+            color: var(--text-primary);
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .album-actions .btn-primary:hover {
+            background: var(--secondary-color);
+        }
+        
+        .album-actions .btn-danger {
+            background: var(--error-color);
+            color: var(--text-primary);
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .album-actions .btn-danger:hover {
+            background: #c62828;
+        }
+        
         @media (max-width: 768px) {
             .admin-container {
                 flex-direction: column;
@@ -282,7 +374,7 @@ $upcoming_tours = fetchAll("SELECT * FROM tour_dates WHERE event_date >= CURDATE
             <nav>
                 <ul class="admin-nav">
                     <li><a href="dashboard.php" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                    <li><a href="songs.php"><i class="fas fa-music"></i> Songs</a></li>
+                    <li><a href="songs.php" class="active"><i class="fas fa-music"></i> Manage Songs</a></li>
                     <li><a href="videos.php"><i class="fas fa-video"></i> Videos</a></li>
                     <li><a href="tour.php"><i class="fas fa-calendar-alt"></i> Tour Dates</a></li>
                     <li><a href="messages.php"><i class="fas fa-envelope"></i> Messages <span style="background: var(--error-color); color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.8rem;"><?php echo $total_messages; ?></span></a></li>
@@ -426,12 +518,64 @@ $upcoming_tours = fetchAll("SELECT * FROM tour_dates WHERE event_date >= CURDATE
                 </ul>
             </div>
             
+            <?php if (isset($error)): ?>
+                <div class="alert-error">
+                    <?php echo $error; ?>
+                </div>
+            <?php endif; ?>
+            
+            <?php if ($success_message): ?>
+                <div class="alert-success">
+                    <?php echo $success_message; ?>
+                </div>
+            <?php endif; ?>
+            
+            <!-- Albums Section -->
+            <div class="albums-section">
+                <div class="section-title">
+                    <h3>Albums</h3>
+                    <p>Manage your album collection</p>
+                </div>
+                
+                <div class="albums-grid">
+                    <?php
+                    // Get unique albums from database
+                    $albums_query = "SELECT DISTINCT album, artist, cover_image, COUNT(*) as song_count FROM songs WHERE album IS NOT NULL AND album != '' GROUP BY album ORDER BY album ASC";
+                    $albums = fetchAll($albums_query);
+                    
+                    if (!empty($albums)):
+                    ?>
+                        <?php foreach ($albums as $album): ?>
+                            <div class="album-card">
+                                <img src="<?php echo APP_URL . '/' . ($album['cover_image'] ?: 'assets/images/default-album.jpg'); ?>" 
+                                     alt="<?php echo xss_clean($album['album']); ?>" class="album-cover">
+                                <div class="album-info">
+                                    <h4><?php echo xss_clean($album['album']); ?></h4>
+                                    <p><?php echo xss_clean($album['artist']); ?> • <?php echo $album['song_count']; ?> songs</p>
+                                    <div class="album-actions">
+                                        <a href="edit-album.php?album=<?php echo urlencode($album['album']); ?>" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </a>
+                                        <a href="delete-album.php?album=<?php echo urlencode($album['album']); ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this album and all its songs?')">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="no-content">
+                            <p>No albums available yet. <a href="add-song.php">Add songs with album information</a> to create albums.</p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+            
             <!-- Quick Actions -->
             <div class="quick-actions">
                 <a href="add-song.php" class="btn-quick-action"><i class="fas fa-plus"></i> Add Song</a>
                 <a href="add-video.php" class="btn-quick-action"><i class="fas fa-plus"></i> Add Video</a>
                 <a href="add-tour.php" class="btn-quick-action"><i class="fas fa-plus"></i> Add Tour Date</a>
-                <a href="../index.php" class="btn-quick-action" target="_blank"><i class="fas fa-eye"></i> View Website</a>
             </div>
         </main>
     </div>

@@ -110,32 +110,29 @@ $allSongs = get_songs();
             </div>
             
             <div class="albums-grid">
-                <div class="album-card">
-                    <img src="assets/images/album1.jpg" alt="Album Cover" class="album-cover">
-                    <div class="album-info">
-                        <h4>Debut Album</h4>
-                        <p>2023</p>
-                        <button class="btn btn-primary">Play Album</button>
-                    </div>
-                </div>
+                <?php
+                // Get unique albums from database
+                $albums_query = "SELECT DISTINCT album, artist, cover_image FROM songs WHERE album IS NOT NULL AND album != '' ORDER BY album ASC";
+                $albums = fetchAll($albums_query);
                 
-                <div class="album-card">
-                    <img src="assets/images/album2.jpg" alt="Album Cover" class="album-cover">
-                    <div class="album-info">
-                        <h4>Second Chapter</h4>
-                        <p>2024</p>
-                        <button class="btn btn-primary">Play Album</button>
+                if (!empty($albums)):
+                ?>
+                    <?php foreach ($albums as $album): ?>
+                        <div class="album-card">
+                            <img src="<?php echo APP_URL . '/' . ($album['cover_image'] ?: 'assets/images/default-album.jpg'); ?>" 
+                                 alt="<?php echo xss_clean($album['album']); ?>" class="album-cover">
+                            <div class="album-info">
+                                <h4><?php echo xss_clean($album['album']); ?></h4>
+                                <p><?php echo xss_clean($album['artist']); ?></p>
+                                <button class="btn btn-primary" onclick="playAlbum('<?php echo xss_clean($album['album']); ?>')">Play Album</button>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="no-content">
+                        <p>No albums available yet. Add songs with album information to see them here!</p>
                     </div>
-                </div>
-                
-                <div class="album-card">
-                    <img src="assets/images/album3.jpg" alt="Album Cover" class="album-cover">
-                    <div class="album-info">
-                        <h4>Acoustic Sessions</h4>
-                        <p>2024</p>
-                        <button class="btn btn-primary">Play Album</button>
-                    </div>
-                </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -717,6 +714,90 @@ function addToFavorites(songId) {
     })
     .catch(error => {
         showToast('Failed to add to favorites', 'error');
+    });
+}
+
+// Play album functionality
+function playAlbum(albumName) {
+    // Get all songs from the selected album
+    fetch('includes/get-album-songs.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ album: albumName })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.songs.length > 0) {
+            // Replace current playlist with album songs
+            const playlistContainer = document.getElementById('playlistContainer');
+            const playlistDiv = playlistContainer.querySelector('.playlist');
+            
+            // Clear existing playlist
+            playlistDiv.innerHTML = '';
+            
+            // Add album songs to playlist
+            data.songs.forEach((song, index) => {
+                const songItem = document.createElement('div');
+                songItem.className = 'song-item';
+                songItem.dataset.audio = song.file_path;
+                songItem.dataset.index = index;
+                
+                songItem.innerHTML = `
+                    <div class="song-number">${index + 1}</div>
+                    <img src="${song.cover_image || 'assets/images/default-album.jpg'}" 
+                         alt="${song.title}" class="song-cover">
+                    <div class="song-info">
+                        <div class="song-title">${song.title}</div>
+                        <div class="song-artist">${song.artist}</div>
+                        ${song.genre ? `<div class="song-genre">${song.genre}</div>` : ''}
+                    </div>
+                    <div class="song-meta">
+                        <div class="song-duration">${song.duration}</div>
+                        ${song.release_date ? `<div class="song-release">${new Date(song.release_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>` : ''}
+                    </div>
+                    <div class="song-actions">
+                        <button class="btn-icon" onclick="downloadSong('${song.file_path}')" title="Download">
+                            <i class="fas fa-download"></i>
+                        </button>
+                        <button class="btn-icon" onclick="shareSong('${song.title}')" title="Share">
+                            <i class="fas fa-share"></i>
+                        </button>
+                        <button class="btn-icon" onclick="addToFavorites(${song.id})" title="Add to Favorites">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                `;
+                
+                playlistDiv.appendChild(songItem);
+                
+                // Add click event listener
+                songItem.addEventListener('click', function(e) {
+                    if (e.target.closest('.song-actions')) return;
+                    
+                    // Update current song index
+                    currentSongIndex = index;
+                    originalPlaylist = Array.from(playlistDiv.querySelectorAll('.song-item'));
+                    
+                    // Load and play first song
+                    loadSong(index);
+                    togglePlayPause();
+                });
+            });
+            
+            // Load first song from album
+            currentSongIndex = 0;
+            loadSong(0);
+            togglePlayPause();
+            
+            showToast(`Playing album: ${albumName}`, 'success');
+        } else {
+            showToast('No songs found in this album', 'error');
+        }
+    })
+    .catch(error => {
+        showToast('Failed to load album', 'error');
     });
 }
 </script>

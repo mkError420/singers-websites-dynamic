@@ -371,7 +371,7 @@ header.scrolled nav {
 
 .mobile-menu-toggle.active span:nth-child(1) {
     transform: translateY(10px) rotate(45deg);
-    background: var(--primary-color);
+    background: var(--text-primary);
 }
 
 .mobile-menu-toggle.active span:nth-child(2) {
@@ -381,13 +381,14 @@ header.scrolled nav {
 
 .mobile-menu-toggle.active span:nth-child(3) {
     transform: translateY(-10px) rotate(-45deg);
-    background: var(--primary-color);
+    background: var(--text-primary);
 }
 
 .mobile-menu-toggle.active {
     background: var(--primary-color);
     border-color: var(--primary-color);
     animation: menuPulse 0.6s ease;
+    box-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
 }
 
 @keyframes menuPulse {
@@ -440,6 +441,7 @@ header.scrolled nav {
     margin-bottom: 2rem;
 }
 
+/* CTA Buttons - Unique Style */
 .cta-button {
     display: inline-block;
     padding: 1rem 2rem;
@@ -452,22 +454,68 @@ header.scrolled nav {
     cursor: pointer;
     transition: all 0.3s ease;
     text-decoration: none;
-    box-shadow: var(--shadow-lg);
+    box-shadow: 
+        0 4px 0 rgba(102, 126, 234, 0.4),
+        0 8px 16px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    position: relative;
+    transform-style: preserve-3d;
+    transform: perspective(1000px) rotateX(0deg);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.cta-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    border-radius: 50px;
+    pointer-events: none;
 }
 
 .cta-button:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-xl);
+    transform: perspective(1000px) rotateX(-5deg) translateY(-8px);
+    box-shadow: 
+        0 8px 0 rgba(102, 126, 234, 0.5),
+        0 16px 32px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    color: var(--text-primary);
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+.cta-button:active {
+    transform: perspective(1000px) rotateX(-2deg) translateY(-2px);
+    box-shadow: 
+        0 2px 0 rgba(102, 126, 234, 0.4),
+        0 4px 8px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .cta-button.secondary {
     background: transparent;
     border: 2px solid var(--primary-color);
     margin-left: 1rem;
+    box-shadow: 
+        0 4px 0 rgba(255, 107, 107, 0.3),
+        0 8px 16px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 107, 107, 0.1);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
 }
 
 .cta-button.secondary:hover {
     background: var(--primary-color);
+    color: var(--text-primary);
+    transform: perspective(1000px) rotateX(-5deg) translateY(-8px);
+    box-shadow: 
+        0 8px 0 rgba(255, 107, 107, 0.4),
+        0 16px 32px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    border-color: var(--secondary-color);
 }
 
 /* Section Styles */
@@ -636,25 +684,63 @@ section {
     align-items: center;
 }
 
+/* Primary Buttons - Unique Style */
 .btn {
     padding: 0.75rem 1.5rem;
     border: none;
-    border-radius: 25px;
+    border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
     text-decoration: none;
     display: inline-block;
+    position: relative;
+    transform-style: preserve-3d;
+    transform: perspective(1000px) rotateX(0deg);
+    box-shadow: 
+        0 3px 0 rgba(255, 107, 107, 0.3),
+        0 6px 12px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    font-size: 0.95rem;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, transparent 50%);
+    border-radius: 8px;
+    pointer-events: none;
 }
 
 .btn-primary {
-    background: var(--primary-color);
+    background: linear-gradient(135deg, var(--primary-color) 0%, #ff8787 100%);
     color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .btn-primary:hover {
-    background: var(--secondary-color);
-    transform: translateY(-2px);
+    background: linear-gradient(135deg, var(--secondary-color) 0%, #5dd4d4 100%);
+    transform: perspective(1000px) rotateX(-5deg) translateY(-6px);
+    box-shadow: 
+        0 6px 0 rgba(78, 205, 196, 0.4),
+        0 12px 24px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    color: var(--text-primary);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-primary:active {
+    transform: perspective(1000px) rotateX(-2deg) translateY(-1px);
+    box-shadow: 
+        0 1px 0 rgba(78, 205, 196, 0.3),
+        0 2px 4px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 /* Contact Form */
@@ -702,9 +788,43 @@ textarea.form-control {
 
 /* Newsletter */
 .newsletter {
-    background: var(--gradient-secondary);
-    padding: 3rem 0;
+    background: var(--dark-secondary);
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    padding: 4rem 0;
     text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.newsletter::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 107, 107, 0.05) 0%, rgba(78, 205, 196, 0.05) 100%);
+    z-index: 0;
+}
+
+.newsletter .container {
+    position: relative;
+    z-index: 1;
+}
+
+.newsletter .section-title h2 {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+}
+
+.newsletter .section-title p {
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
 }
 
 .newsletter-form {
@@ -712,10 +832,86 @@ textarea.form-control {
     max-width: 500px;
     margin: 0 auto;
     gap: 1rem;
+    background: var(--glass-bg);
+    padding: 1.5rem;
+    border-radius: 15px;
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .newsletter-form input {
     flex: 1;
+    background: var(--dark-tertiary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 1rem;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: var(--transition-smooth);
+}
+
+.newsletter-form input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+}
+
+.newsletter-form input::placeholder {
+    color: var(--text-muted);
+}
+
+/* Newsletter Button - Unique Style */
+.newsletter-form button {
+    background: linear-gradient(135deg, var(--accent-color) 0%, #67b3cc 100%);
+    color: var(--text-primary);
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-bounce);
+    font-size: 1rem;
+    white-space: nowrap;
+    position: relative;
+    transform-style: preserve-3d;
+    transform: perspective(1000px) rotateX(0deg);
+    box-shadow: 
+        0 3px 0 rgba(69, 183, 209, 0.3),
+        0 6px 12px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+
+.newsletter-form button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 50%);
+    border-radius: 12px;
+    pointer-events: none;
+}
+
+.newsletter-form button:hover {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #ff8787 100%);
+    transform: perspective(1000px) rotateX(-5deg) translateY(-6px);
+    box-shadow: 
+        0 6px 0 rgba(255, 107, 107, 0.4),
+        0 12px 24px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    color: var(--text-primary);
+}
+
+.newsletter-form button:active {
+    transform: perspective(1000px) rotateX(-2deg) translateY(-1px);
+    box-shadow: 
+        0 1px 0 rgba(255, 107, 107, 0.3),
+        0 2px 4px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 /* Footer */
@@ -905,6 +1101,16 @@ footer {
     
     .newsletter-form {
         flex-direction: column;
+        background: var(--dark-tertiary);
+        padding: 1rem;
+    }
+    
+    .newsletter-form input {
+        margin-bottom: 1rem;
+    }
+    
+    .newsletter-form button {
+        width: 100%;
     }
     
     .footer-content {
@@ -1036,20 +1242,56 @@ footer {
     gap: 0.5rem;
 }
 
+/* Playlist Toggle Buttons - Unique Style */
 .playlist-toggle button {
-    background: none;
+    background: linear-gradient(135deg, var(--dark-tertiary) 0%, #3a3a3a 100%);
     border: 1px solid var(--border-color);
     color: var(--text-primary);
     padding: 0.5rem 1rem;
-    border-radius: 20px;
+    border-radius: 6px;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    position: relative;
+    transform-style: preserve-3d;
+    transform: perspective(1000px) rotateX(0deg);
+    box-shadow: 
+        0 2px 0 rgba(58, 58, 58, 0.2),
+        0 4px 8px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+}
+
+.playlist-toggle button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+    border-radius: 6px;
+    pointer-events: none;
 }
 
 .playlist-toggle button:hover {
-    background: var(--primary-color);
+    background: linear-gradient(135deg, var(--primary-color) 0%, #ff8787 100%);
     border-color: var(--primary-color);
+    color: var(--text-primary);
+    transform: perspective(1000px) rotateX(-5deg) translateY(-4px);
+    box-shadow: 
+        0 4px 0 rgba(255, 107, 107, 0.3),
+        0 8px 16px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.playlist-toggle button:active {
+    transform: perspective(1000px) rotateX(-2deg) translateY(-1px);
+    box-shadow: 
+        0 1px 0 rgba(255, 107, 107, 0.2),
+        0 2px 4px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 /* Video Modal */

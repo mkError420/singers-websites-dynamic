@@ -61,6 +61,9 @@ function start_secure_session() {
 
 // Prevent XSS
 function xss_clean($data) {
+    if ($data === null) {
+        return '';
+    }
     return htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
 }
 

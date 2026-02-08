@@ -8,7 +8,7 @@ start_secure_session();
 require_login();
 
 // Get all songs
-$all_songs = fetchAll("SELECT * FROM songs ORDER BY created_at DESC");
+$songs = fetchAll("SELECT * FROM songs ORDER BY created_at DESC");
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -23,25 +23,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
-
-// Handle success messages
-$success_message = '';
-if (isset($_GET['added']) && $_GET['added'] == 1) {
-    $success_message = 'Song added successfully!';
-}
-if (isset($_GET['updated']) && $_GET['updated'] == 1) {
-    $success_message = 'Song updated successfully!';
-}
-if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
-    $success_message = 'Song deleted successfully!';
-}
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Songs - Admin</title>
     <link rel="stylesheet" href="<?php echo APP_URL; ?>/assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -120,9 +104,9 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
         .songs-table {
             width: 100%;
             background: var(--dark-secondary);
-            border-radius: 10px;
+            border-radius: 15px;
             overflow: hidden;
-            box-shadow: var(--shadow-md);
+            box-shadow: var(--shadow-lg);
         }
         
         .songs-table table {
@@ -136,6 +120,7 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
             padding: 1rem;
             text-align: left;
             font-weight: 600;
+            border-bottom: 2px solid var(--border-color);
         }
         
         .songs-table td {
@@ -144,7 +129,7 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
             color: var(--text-secondary);
         }
         
-        .songs-table tr:hover {
+        .songs-table tr:hover td {
             background: var(--dark-tertiary);
         }
         
@@ -153,35 +138,43 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
             gap: 0.5rem;
         }
         
-        .btn-sm {
-            padding: 0.5rem 1rem;
-            font-size: 0.9rem;
-            border-radius: 5px;
-            text-decoration: none;
-            display: inline-block;
-        }
-        
-        .btn-edit {
+        .btn-action {
             background: var(--primary-color);
             color: var(--text-primary);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-size: 0.9rem;
         }
         
-        .btn-delete {
+        .btn-action:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
             background: var(--error-color);
-            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c62828;
         }
         
         .add-song-btn {
             background: var(--primary-color);
             color: var(--text-primary);
-            padding: 1rem 2rem;
             border: none;
-            border-radius: 8px;
+            padding: 1rem 2rem;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
             text-decoration: none;
             display: inline-block;
             margin-bottom: 2rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
         }
         
         .add-song-btn:hover {
@@ -189,18 +182,43 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
             transform: translateY(-2px);
         }
         
-        .alert-success {
-            background: var(--success-color);
-            color: white;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 2rem;
-        }
+        @media (max-width: 768px) {
+            .admin-container {
+                flex-direction: column;
+            }
         
-        .no-songs {
-            text-align: center;
-            padding: 3rem;
-            color: var(--text-muted);
+            .admin-sidebar {
+                width: 100%;
+                padding: 1rem 0;
+            }
+        
+            .admin-nav {
+                display: flex;
+                overflow-x: auto;
+                padding: 0 1rem;
+            }
+        
+            .admin-nav li {
+                margin: 0;
+                margin-right: 0.5rem;
+            }
+        
+            .admin-nav a {
+                white-space: nowrap;
+            }
+        
+            .admin-content {
+                padding: 1rem;
+            }
+        
+            .songs-table {
+                font-size: 0.9rem;
+            }
+        
+            .songs-table th,
+            .songs-table td {
+                padding: 0.75rem 0.5rem;
+            }
         }
     </style>
 </head>
@@ -237,53 +255,48 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
                 </div>
             </div>
             
-            <?php if ($success_message): ?>
-                <div class="alert-success">
-                    <?php echo $success_message; ?>
-                </div>
-            <?php endif; ?>
-            
             <a href="add-song.php" class="add-song-btn">
                 <i class="fas fa-plus"></i> Add New Song
             </a>
             
-            <?php if (!empty($all_songs)): ?>
-                <div class="songs-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Title</th>
-                                <th>Artist</th>
-                                <th>Genre</th>
-                                <th>Duration</th>
-                                <th>Release Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($all_songs as $song): ?>
+            <?php if (isset($_GET['deleted'])): ?>
+                <div class="alert-success">
+                    Song deleted successfully!
+                </div>
+            <?php endif; ?>
+            
+            <div class="songs-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Artist</th>
+                            <th>Album</th>
+                            <th>Genre</th>
+                            <th>Duration</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($songs)): ?>
+                            <?php foreach ($songs as $song): ?>
                                 <tr>
-                                    <td>
-                                        <strong><?php echo xss_clean($song['title']); ?></strong>
-                                        <?php if ($song['is_active']): ?>
-                                            <span style="color: var(--success-color);">●</span>
-                                        <?php else: ?>
-                                            <span style="color: var(--text-muted);">○</span>
-                                        <?php endif; ?>
-                                    </td>
+                                    <td><?php echo xss_clean($song['title']); ?></td>
                                     <td><?php echo xss_clean($song['artist']); ?></td>
-                                    <td><?php echo xss_clean($song['genre'] ?? 'N/A'); ?></td>
-                                    <td><?php echo $song['duration'] ?? 'N/A'; ?></td>
-                                    <td><?php echo $song['release_date'] ? format_date($song['release_date']) : 'N/A'; ?></td>
+                                    <td><?php echo xss_clean($song['album'] ?? 'N/A'); ?></td>
+                                    <td><?php echo xss_clean($song['genre']); ?></td>
+                                    <td><?php echo $song['duration']; ?></td>
+                                    <td><?php echo format_date($song['created_at'], 'M j, Y'); ?></td>
                                     <td>
                                         <div class="song-actions">
-                                            <a href="edit-song.php?id=<?php echo $song['id']; ?>" class="btn-sm btn-edit">
+                                            <a href="edit-song.php?id=<?php echo $song['id']; ?>" class="btn-action">
                                                 <i class="fas fa-edit"></i> Edit
                                             </a>
                                             <form method="POST" style="display: inline;">
                                                 <input type="hidden" name="action" value="delete">
                                                 <input type="hidden" name="song_id" value="<?php echo $song['id']; ?>">
-                                                <button type="submit" class="btn-sm btn-delete" onclick="return confirm('Are you sure you want to delete this song?');">
+                                                <button type="submit" class="btn-action btn-danger" onclick="return confirm('Are you sure you want to delete this song?')">
                                                     <i class="fas fa-trash"></i> Delete
                                                 </button>
                                             </form>
@@ -291,18 +304,16 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            <?php else: ?>
-                <div class="no-songs">
-                    <h3>No songs found</h3>
-                    <p>Start by adding your first song!</p>
-                    <a href="add-song.php" class="add-song-btn">
-                        <i class="fas fa-plus"></i> Add Your First Song
-                    </a>
-                </div>
-            <?php endif; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="7" style="text-align: center; padding: 2rem;">
+                                    No songs found. <a href="add-song.php">Add your first song</a>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
         </main>
     </div>
 </body>

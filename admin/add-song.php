@@ -10,6 +10,7 @@ require_login();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = sanitize_input($_POST['title'] ?? '');
     $artist = sanitize_input($_POST['artist'] ?? '');
+    $album = sanitize_input($_POST['album'] ?? '');
     $genre = sanitize_input($_POST['genre'] ?? '');
     $duration = sanitize_input($_POST['duration'] ?? '');
     $release_date = $_POST['release_date'] ?? '';
@@ -41,6 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $song_data = [
             'title' => $title,
             'artist' => $artist,
+            'album' => $album,
             'genre' => $genre,
             'duration' => $duration,
             'release_date' => $release_date,
@@ -310,6 +312,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="form-group">
                     <label for="artist">Artist *</label>
                     <input type="text" id="artist" name="artist" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="album">Album</label>
+                    <input type="text" id="album" name="album" class="form-control" placeholder="e.g., Greatest Hits">
                 </div>
                 
                 <div class="form-group">
