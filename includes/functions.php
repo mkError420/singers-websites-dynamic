@@ -260,4 +260,32 @@ function get_videos_by_category_name($category_name, $limit = null, $offset = 0)
     
     return fetchAll($sql, $params);
 }
+
+// Get videos with search term
+function get_videos_with_search($search_term, $limit = null, $offset = 0) {
+    $sql = "SELECT * FROM videos WHERE is_active = 1 AND (title LIKE ? OR description LIKE ? OR category_name LIKE ?) ORDER BY created_at DESC";
+    $params = ['%' . $search_term . '%', '%' . $search_term . '%', '%' . $search_term . '%'];
+    
+    if ($limit) {
+        $sql .= " LIMIT ? OFFSET ?";
+        $params[] = $limit;
+        $params[] = $offset;
+    }
+    
+    return fetchAll($sql, $params);
+}
+
+// Get videos with search term and category
+function get_videos_with_search_and_category($search_term, $category_name, $limit = null, $offset = 0) {
+    $sql = "SELECT * FROM videos WHERE is_active = 1 AND (title LIKE ? OR description LIKE ? OR category_name LIKE ?) ORDER BY created_at DESC";
+    $params = ['%' . $search_term . '%', '%' . $search_term . '%', '%' . $search_term . '%', $category_name];
+    
+    if ($limit) {
+        $sql .= " LIMIT ? OFFSET ?";
+        $params[] = $limit;
+        $params[] = $offset;
+    }
+    
+    return fetchAll($sql, $params);
+}
 ?>

@@ -17,22 +17,37 @@ $all_videos = get_videos();
 // Get video categories from actual videos (text-based)
 $categories = get_video_categories_from_videos();
 
-// Get current category filter
+// Get current category filter and search term
 $current_category_name = isset($_GET['category']) ? sanitize_input($_GET['category']) : null;
+$search_term = isset($_GET['search']) ? sanitize_input($_GET['search']) : null;
 
 // Pagination settings
 $videos_per_page = 9;
 $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($current_page - 1) * $videos_per_page;
 
-// Filter videos by category if selected
-if ($current_category_name) {
+// Filter videos by category and/or search
+if ($search_term && $current_category_name) {
+    // Both search and category
+    $all_videos = get_videos_with_search_and_category($search_term, $current_category_name, $videos_per_page, $offset);
+    $total_sql = "SELECT COUNT(*) as total FROM videos WHERE is_active = 1 AND (title LIKE ? OR description LIKE ?) AND category_name = ?";
+    $total_result = fetchOne($total_sql, ['%' . $search_term . '%', '%' . $search_term . '%', $current_category_name]);
+    $total_videos = $total_result['total'] ?? 0;
+} elseif ($search_term) {
+    // Search only
+    $all_videos = get_videos_with_search($search_term, $videos_per_page, $offset);
+    $total_sql = "SELECT COUNT(*) as total FROM videos WHERE is_active = 1 AND (title LIKE ? OR description LIKE ?)";
+    $total_result = fetchOne($total_sql, ['%' . $search_term . '%', '%' . $search_term . '%']);
+    $total_videos = $total_result['total'] ?? 0;
+} elseif ($current_category_name) {
+    // Category only
     $all_videos = get_videos_by_category_name($current_category_name, $videos_per_page, $offset);
     // Get total count for pagination
     $total_sql = "SELECT COUNT(*) as total FROM videos WHERE category_name = ? AND is_active = 1";
     $total_result = fetchOne($total_sql, [$current_category_name]);
     $total_videos = $total_result['total'] ?? 0;
 } else {
+    // All videos
     $all_videos = get_videos($videos_per_page, $offset);
     // Get total count for pagination
     $total_sql = "SELECT COUNT(*) as total FROM videos WHERE is_active = 1";
@@ -44,14 +59,7 @@ if ($current_category_name) {
 $total_pages = ceil($total_videos / $videos_per_page);
 ?>
 
-<!-- Hero Section -->
-<section class="hero">
-    <div class="hero-content">
-        <h1>Music Videos</h1>
-        <p>Watch our latest music videos, live performances, and behind-the-scenes content.</p>
-    </div>
-</section>
-
+<!-- Our Videos Section -->
 <section class="section">
     <div class="container">
         <div class="section-title">
@@ -62,14 +70,26 @@ $total_pages = ceil($total_videos / $videos_per_page);
         <!-- Filter Buttons -->
         <div class="video-filters">
             <div class="filter-buttons">
-                <a href="videos.php" class="filter-btn <?php echo !$current_category_name ? 'active' : ''; ?>">All</a>
+                <a href="videos.php" class="filter-btn <?php echo !$current_category_name && !isset($_GET['search']) ? 'active' : ''; ?>">All</a>
                 <?php foreach ($categories as $category): ?>
                     <a href="videos.php?category=<?php echo urlencode($category['name']); ?>" 
-                       class="filter-btn <?php echo $current_category_name == $category['name'] ? 'active' : ''; ?>"
+                       class="filter-btn <?php echo $current_category_name == $category['name'] && !isset($_GET['search']) ? 'active' : ''; ?>"
                        style="background-color: <?php echo $category['color']; ?>20; border-color: <?php echo $category['color']; ?>;">
                         <?php echo htmlspecialchars($category['name']); ?> (<?php echo $category['count']; ?>)
                     </a>
                 <?php endforeach; ?>
+            </div>
+            
+            <!-- Search Bar -->
+            <div class="search-bar">
+                <form method="GET" action="videos.php" class="search-form-inline">
+                    <input type="text" name="search" class="search-input-inline" 
+                           placeholder="Search videos..." 
+                           value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+                    <button type="submit" class="search-btn-inline">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
             </div>
         </div>
         
@@ -694,6 +714,70 @@ function closeVideoModal() {
         width: 100%;
         justify-content: center;
     }
+}
+
+/* Search Bar Styles */
+.search-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    margin: 2rem 0 2rem 0;
+    flex-wrap: wrap;
+}
+
+.search-bar:not(.has-search) {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.search-form-inline {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex: 1;
+}
+
+.search-input-inline {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    background: var(--dark-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 25px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    outline: none;
+    min-width: 250px;
+}
+
+.search-input-inline:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+}
+
+.search-input-inline::placeholder {
+    color: var(--text-muted);
+}
+
+.search-btn-inline {
+    background: var(--primary-color);
+    color: var(--text-primary);
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.search-btn-inline:hover {
+    background: var(--secondary-color);
+    transform: translateY(-2px);
 }
 </style>
 
