@@ -374,7 +374,8 @@ $upcoming_tours = fetchAll("SELECT * FROM tour_dates WHERE event_date >= CURDATE
             <nav>
                 <ul class="admin-nav">
                     <li><a href="dashboard.php" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                    <li><a href="songs.php" class="active"><i class="fas fa-music"></i> Manage Songs</a></li>
+                    <li><a href="songs.php"><i class="fas fa-music"></i> Songs</a></li>
+                    <li><a href="albums.php"><i class="fas fa-compact-disc"></i> Albums</a></li>
                     <li><a href="videos.php"><i class="fas fa-video"></i> Videos</a></li>
                     <li><a href="tour.php"><i class="fas fa-calendar-alt"></i> Tour Dates</a></li>
                     <li><a href="messages.php"><i class="fas fa-envelope"></i> Messages <span style="background: var(--error-color); color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.8rem;"><?php echo $total_messages; ?></span></a></li>

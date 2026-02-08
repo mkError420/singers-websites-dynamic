@@ -4,7 +4,23 @@ require_once __DIR__ . '/includes/database.php';
 require_once __DIR__ . '/includes/functions.php';
 
 // Get all songs
-$allSongs = get_songs();
+$all_songs_query = "SELECT * FROM songs WHERE is_active = TRUE ORDER BY created_at DESC";
+$all_songs = fetchAll($all_songs_query);
+
+// Pagination settings
+$songs_per_page = 8;
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$offset = ($page - 1) * $songs_per_page;
+
+// Get total songs count
+$total_songs_query = "SELECT COUNT(*) as total FROM songs WHERE is_active = TRUE";
+$total_result = fetchOne($total_songs_query);
+$total_songs = $total_result['total'];
+$total_pages = ceil($total_songs / $songs_per_page);
+
+// Get songs for current page
+$songs_query = "SELECT * FROM songs WHERE is_active = TRUE ORDER BY created_at DESC LIMIT ? OFFSET ?";
+$allSongs = fetchAll($songs_query, [$songs_per_page, $offset]);
 ?>
 
 <!-- Music Section -->
@@ -56,8 +72,14 @@ $allSongs = get_songs();
             <div class="playlist-header">
                 <h3>Playlist</h3>
                 <div class="playlist-controls">
-                    <button id="playAllBtn" class="btn btn-sm">Play All</button>
-                    <button id="shuffleAllBtn" class="btn btn-sm secondary">Shuffle</button>
+                    <div class="search-container">
+                        <input type="text" id="playlistSearch" placeholder="Search songs..." class="search-input">
+                        <button id="clearSearch" class="btn btn-sm secondary">Clear</button>
+                    </div>
+                    <div class="playlist-actions">
+                        <button id="playAllBtn" class="btn btn-sm">Play All</button>
+                        <button id="shuffleAllBtn" class="btn btn-sm secondary">Shuffle</button>
+                    </div>
                 </div>
             </div>
             
@@ -65,12 +87,15 @@ $allSongs = get_songs();
                 <?php if (!empty($allSongs)): ?>
                     <?php foreach ($allSongs as $index => $song): ?>
                         <div class="song-item" data-audio="<?php echo APP_URL . '/' . $song['file_path']; ?>" data-index="<?php echo $index; ?>">
-                            <div class="song-number"><?php echo $index + 1; ?></div>
+                            <div class="song-number"><?php echo ($page - 1) * $songs_per_page + $index + 1; ?></div>
                             <img src="<?php echo APP_URL . '/' . ($song['cover_image'] ?: 'assets/images/default-album.jpg'); ?>" 
                                  alt="<?php echo xss_clean($song['title']); ?>" class="song-cover">
                             <div class="song-info">
                                 <div class="song-title"><?php echo xss_clean($song['title']); ?></div>
                                 <div class="song-artist"><?php echo xss_clean($song['artist']); ?></div>
+                                <?php if ($song['album']): ?>
+                                    <div class="song-album"><?php echo xss_clean($song['album']); ?></div>
+                                <?php endif; ?>
                                 <?php if ($song['genre']): ?>
                                     <div class="song-genre"><?php echo xss_clean($song['genre']); ?></div>
                                 <?php endif; ?>
@@ -100,6 +125,33 @@ $allSongs = get_songs();
                     </div>
                 <?php endif; ?>
             </div>
+            
+            <!-- Playlist Pagination -->
+            <?php if ($total_pages > 1): ?>
+                <div class="playlist-pagination">
+                    <?php if ($page > 1): ?>
+                        <a href="?page=<?php echo $page - 1; ?>#playlist" class="pagination-btn prev">
+                            <i class="fas fa-chevron-left"></i> Previous
+                        </a>
+                    <?php endif; ?>
+                    
+                    <div class="pagination-pages">
+                        <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                            <?php if ($i == $page): ?>
+                                <span class="pagination-current"><?php echo $i; ?></span>
+                            <?php else: ?>
+                                <a href="?page=<?php echo $i; ?>#playlist" class="pagination-page"><?php echo $i; ?></a>
+                            <?php endif; ?>
+                        <?php endfor; ?>
+                    </div>
+                    
+                    <?php if ($page < $total_pages): ?>
+                        <a href="?page=<?php echo $page + 1; ?>#playlist" class="pagination-btn next">
+                            Next <i class="fas fa-chevron-right"></i>
+                        </a>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
         </div>
         
         <!-- Albums Section -->
@@ -109,25 +161,108 @@ $allSongs = get_songs();
                 <p>Complete album collection</p>
             </div>
             
-            <div class="albums-grid">
+            <div class="albums-container">
                 <?php
-                // Get unique albums from database
-                $albums_query = "SELECT DISTINCT album, artist, cover_image FROM songs WHERE album IS NOT NULL AND album != '' ORDER BY album ASC";
-                $albums = fetchAll($albums_query);
+                // Pagination settings
+                $albums_per_page = 6; // 3 items per row × 2 rows = 6 per page
+                $page = isset($_GET['album_page']) ? (int)$_GET['album_page'] : 1;
+                $offset = ($page - 1) * $albums_per_page;
+                
+                // Get total albums count
+                $total_albums_query = "SELECT COUNT(DISTINCT album) as total FROM songs WHERE album IS NOT NULL AND album != ''";
+                $total_result = fetchOne($total_albums_query);
+                $total_albums = $total_result['total'];
+                $total_pages = ceil($total_albums / $albums_per_page);
+                
+                // Get albums for current page
+                $albums_query = "SELECT DISTINCT album, artist, cover_image FROM songs WHERE album IS NOT NULL AND album != '' GROUP BY album ORDER BY album ASC LIMIT ? OFFSET ?";
+                $albums = fetchAll($albums_query, [$albums_per_page, $offset]);
                 
                 if (!empty($albums)):
                 ?>
-                    <?php foreach ($albums as $album): ?>
-                        <div class="album-card">
-                            <img src="<?php echo APP_URL . '/' . ($album['cover_image'] ?: 'assets/images/default-album.jpg'); ?>" 
-                                 alt="<?php echo xss_clean($album['album']); ?>" class="album-cover">
-                            <div class="album-info">
-                                <h4><?php echo xss_clean($album['album']); ?></h4>
-                                <p><?php echo xss_clean($album['artist']); ?></p>
-                                <button class="btn btn-primary" onclick="playAlbum('<?php echo xss_clean($album['album']); ?>')">Play Album</button>
+                    <div class="albums-grid">
+                        <?php foreach ($albums as $album): ?>
+                            <?php
+                            // Get all songs from this album
+                            $album_songs_query = "SELECT * FROM songs WHERE album = ? AND is_active = TRUE ORDER BY created_at ASC";
+                            $album_songs = fetchAll($album_songs_query, [$album['album']]);
+                            ?>
+                            
+                            <div class="album-item">
+                                <div class="album-header">
+                                    <img src="<?php echo APP_URL . '/' . ($album['cover_image'] ?: 'assets/images/default-album.jpg'); ?>" 
+                                         alt="<?php echo xss_clean($album['album']); ?>" class="album-cover">
+                                    <div class="album-info">
+                                        <h4><?php echo xss_clean($album['album']); ?></h4>
+                                        <p><?php echo xss_clean($album['artist']); ?> • <?php echo count($album_songs); ?> songs</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="album-songs">
+                                    <h5>Tracks</h5>
+                                    <div class="songs-list">
+                                        <?php foreach ($album_songs as $index => $song): ?>
+                                            <div class="album-song-item" 
+                                                 data-audio="<?php echo APP_URL . '/' . $song['file_path']; ?>" 
+                                                 data-index="<?php echo $index; ?>"
+                                                 data-title="<?php echo xss_clean($song['title']); ?>"
+                                                 data-artist="<?php echo xss_clean($song['artist']); ?>"
+                                                 data-album="<?php echo xss_clean($album['album']); ?>">
+                                                <div class="song-number"><?php echo $index + 1; ?></div>
+                                                <div class="song-details">
+                                                    <div class="song-title"><?php echo xss_clean($song['title']); ?></div>
+                                                    <div class="song-meta">
+                                                        <span class="song-duration"><?php echo $song['duration']; ?></span>
+                                                        <?php if ($song['genre']): ?>
+                                                            <span class="song-genre"><?php echo xss_clean($song['genre']); ?></span>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
+                                                <div class="song-actions">
+                                                    <button class="btn-icon" onclick="downloadSong('<?php echo $song['file_path']; ?>')" title="Download">
+                                                        <i class="fas fa-download"></i>
+                                                    </button>
+                                                    <button class="btn-icon" onclick="shareSong('<?php echo xss_clean($song['title']); ?>')" title="Share">
+                                                        <i class="fas fa-share"></i>
+                                                    </button>
+                                                    <button class="btn-icon" onclick="addToFavorites(<?php echo $song['id']; ?>)" title="Add to Favorites">
+                                                        <i class="far fa-heart"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
                             </div>
+                        <?php endforeach; ?>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <?php if ($total_pages > 1): ?>
+                        <div class="albums-pagination">
+                            <?php if ($page > 1): ?>
+                                <a href="?album_page=<?php echo $page - 1; ?>#albums" class="pagination-btn prev">
+                                    <i class="fas fa-chevron-left"></i> Previous
+                                </a>
+                            <?php endif; ?>
+                            
+                            <div class="pagination-pages">
+                                <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                                    <?php if ($i == $page): ?>
+                                        <span class="pagination-current"><?php echo $i; ?></span>
+                                    <?php else: ?>
+                                        <a href="?album_page=<?php echo $i; ?>#albums" class="pagination-page"><?php echo $i; ?></a>
+                                    <?php endif; ?>
+                                <?php endfor; ?>
+                            </div>
+                            
+                            <?php if ($page < $total_pages): ?>
+                                <a href="?album_page=<?php echo $page + 1; ?>#albums" class="pagination-btn next">
+                                    Next <i class="fas fa-chevron-right"></i>
+                                </a>
+                            <?php endif; ?>
                         </div>
-                    <?php endforeach; ?>
+                    <?php endif; ?>
                 <?php else: ?>
                     <div class="no-content">
                         <p>No albums available yet. Add songs with album information to see them here!</p>
@@ -174,36 +309,48 @@ $allSongs = get_songs();
 }
 
 .player-controls {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
+display: flex;
+gap: 1rem;
+align-items: center;
 }
 
 .control-btn {
-    background: none;
-    border: none;
-    color: var(--text-primary);
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    padding: 0.5rem;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+background: none;
+border: none;
+color: var(--text-primary);
+font-size: 1.2rem;
+cursor: pointer;
+transition: all 0.3s ease;
+padding: 0.5rem;
+border-radius: 50%;
+width: 40px;
+height: 40px;
+display: flex;
+align-items: center;
+justify-content: center;
 }
 
 .control-btn:hover {
-    background: var(--dark-tertiary);
-    color: var(--primary-color);
+background: var(--dark-tertiary);
+color: var(--primary-color);
+}
+
+.control-btn.shuffle-active {
+color: #FF6B6B !important;
+background: rgba(255, 107, 107, 0.1) !important;
+}
+
+.control-btn.repeat-active {
+color: #FF6B6B !important;
+background: rgba(255, 107, 107, 0.1) !important;
 }
 
 .control-btn.play-pause {
-    background: var(--primary-color);
-    color: var(--text-primary);
-    font-size: 1.5rem;
+background: var(--primary-color);
+color: var(--text-primary);
+font-size: 1.5rem;
+width: 50px;
+height: 50px;
     width: 50px;
     height: 50px;
 }
@@ -294,6 +441,24 @@ $allSongs = get_songs();
     margin-top: 2rem;
 }
 
+.playlist {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.playlist-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+    padding: 1rem;
+    background: var(--dark-secondary);
+    border-radius: 10px;
+}
+
 .playlist-header {
     display: flex;
     justify-content: space-between;
@@ -305,7 +470,60 @@ $allSongs = get_songs();
 
 .playlist-controls {
     display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom:1px solid var(--border-color);
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.search-container {
+    display: flex;
     gap: 0.5rem;
+    align-items: center;
+    flex: 1;
+    max-width: 300px;
+}
+
+.search-input {
+    flex: 1;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    background: var(--dark-tertiary);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.2);
+}
+
+.search-input::placeholder {
+    color: var(--text-muted);
+}
+
+.playlist-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.no-search-results {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.no-search-results p {
+    margin: 0;
+    font-size: 1.1rem;
 }
 
 .btn-sm {
@@ -315,6 +533,7 @@ $allSongs = get_songs();
 
 .btn.secondary {
     background: transparent;
+    color: var(--text-primary);
     border: 1px solid var(--border-color);
 }
 
@@ -353,6 +572,39 @@ $allSongs = get_songs();
     height: 50px;
     border-radius: 8px;
     object-fit: cover;
+}
+
+.song-info {
+    flex: 1;
+}
+
+.song-info .song-title {
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.song-info .song-artist {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.song-info .song-album {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-bottom: 0.25rem;
+    font-style: italic;
+}
+
+.song-info .song-genre {
+    background: var(--primary-color);
+    color: var(--text-primary);
+    padding: 0.15rem 0.5rem;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    display: inline-block;
+    margin-right: 0.5rem;
 }
 
 .song-genre {
@@ -395,8 +647,232 @@ $allSongs = get_songs();
 
 .albums-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 2rem;
+}
+
+.albums-container {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+}
+
+.album-item {
+    background: var(--dark-secondary);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+    transition: transform 0.3s ease;
+}
+
+.album-item:hover {
+    transform: translateY(-5px);
+}
+
+.album-item .album-header {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    gap: 1.5rem;
+}
+
+.album-item .album-cover {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.album-item .album-info {
+    flex: 1;
+    text-align: left;
+}
+
+.album-item .album-info h4 {
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+}
+
+.album-item .album-info p {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.album-item .album-songs {
+    padding: 1rem 1.5rem;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.album-item .album-songs h5 {
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.album-item .songs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.album-item .album-song-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    background: var(--dark-tertiary);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    gap: 0.75rem;
+}
+
+.album-item .album-song-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.album-item .album-song-item.active {
+    background: rgba(255, 107, 107, 0.2);
+    border-left: 4px solid var(--primary-color);
+    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+    transform: translateX(2px);
+}
+
+.album-item .album-song-item.active .song-title {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.album-item .album-song-item.active .song-number {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.album-item .album-song-item.active .song-genre {
+    background: var(--secondary-color);
+    color: var(--text-primary);
+}
+
+.album-item .album-song-item.playing {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        background: rgba(255, 107, 107, 0.1);
+    }
+    50% {
+        background: rgba(255, 107, 107, 0.3);
+    }
+    100% {
+        background: rgba(255, 107, 107, 0.1);
+    }
+}
+
+.album-item .album-song-item .song-number {
+    width: 25px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.album-item .album-song-item .song-details {
+    flex: 1;
+}
+
+.album-item .album-song-item .song-title {
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+}
+
+.album-item .album-song-item .song-meta {
+    display: flex;
+    gap: 0.75rem;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.album-item .album-song-item .song-genre {
+    background: var(--primary-color);
+    color: var(--text-primary);
+    padding: 0.1rem 0.4rem;
+    border-radius: 8px;
+    font-size: 0.7rem;
+}
+
+.album-item .album-song-item .song-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.album-item .album-song-item .song-actions .btn-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 0.8rem;
+}
+
+.albums-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+    padding: 1rem;
+    background: var(--dark-secondary);
+    border-radius: 10px;
+}
+
+.pagination-pages {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.pagination-btn {
+    background: var(--primary-color);
+    color: var(--text-primary);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.pagination-btn:hover {
+    background: var(--secondary-color);
+    transform: translateY(-2px);
+}
+
+.pagination-page {
+    background: var(--dark-tertiary);
+    color: var(--text-primary);
+    padding: 0.5rem 0.75rem;
+    border-radius: 15px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.pagination-page:hover {
+    background: var(--primary-color);
+    color: var(--text-primary);
+}
+
+.pagination-current {
+    background: var(--primary-color);
+    color: var(--text-primary);
+    padding: 0.5rem 0.75rem;
+    border-radius: 15px;
+    font-weight: 600;
 }
 
 .album-card {
@@ -461,10 +937,51 @@ $allSongs = get_songs();
     }
     
     .albums-grid {
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(2, 1fr);  
         gap: 1rem;
     }
+    
+    .album-item .album-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+        padding: 1rem;
+    }
+    
+    .album-item .album-cover {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .album-item .album-songs {
+        max-height: 200px;
+        padding: 0.75rem;
+    }
+    
+    .album-item .album-song-item .song-number {
+        width: 20px;
+        font-size: 0.7rem;
+    }
+    
+    .album-item .album-song-item .song-title {
+        font-size: 0.8rem;
+    }
+    
+    .album-item .album-song-item .song-meta {
+        font-size: 0.7rem;
+    }
+    
+    .albums-pagination {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .pagination-pages {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
 }
+
 </style>
 
 <script>
@@ -492,10 +1009,14 @@ function initEnhancedAudioPlayer() {
     
     if (!audioPlayer) return;
     
-    let currentSongIndex = 0;
-    let isPlaying = false;
-    let isShuffled = false;
-    let isRepeating = false;
+    // Global variables for album playback
+    window.currentAlbumSongs = null;
+    window.currentAlbumName = null;
+    window.currentSongIndex = 0;
+    window.isPlaying = false;
+    window.isShuffled = false;
+    window.isRepeating = false;
+    
     let originalPlaylist = Array.from(songItems);
     let shuffledPlaylist = [...originalPlaylist];
     
@@ -521,33 +1042,55 @@ function initEnhancedAudioPlayer() {
     
     // Play/Pause functionality
     function togglePlayPause() {
-        if (isPlaying) {
+        if (window.isPlaying) {
             audioPlayer.pause();
             playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
         } else {
             audioPlayer.play();
             playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
         }
-        isPlaying = !isPlaying;
+        window.isPlaying = !window.isPlaying;
+        
+        // Update playing state in album songs
+        updateAlbumSongStates();
     }
     
     // Shuffle playlist
     function shufflePlaylist() {
-        if (!isShuffled) {
-            shuffledPlaylist = [...originalPlaylist].sort(() => Math.random() - 0.5);
-            isShuffled = true;
-            shuffleBtn.style.color = 'var(--primary-color)';
+        if (!window.isShuffled) {
+            if (window.currentAlbumSongs) {
+                // Shuffle album songs
+                window.currentAlbumSongs = [...window.currentAlbumSongs].sort(() => Math.random() - 0.5);
+            } else {
+                // Shuffle regular playlist
+                shuffledPlaylist = [...originalPlaylist].sort(() => Math.random() - 0.5);
+            }
+            window.isShuffled = true;
+            shuffleBtn.classList.add('shuffle-active');
         } else {
-            shuffledPlaylist = [...originalPlaylist];
-            isShuffled = false;
-            shuffleBtn.style.color = 'var(--text-primary)';
+            if (window.currentAlbumSongs) {
+                // Restore original album order
+                const albumName = window.currentAlbumName;
+                const album_songs_query = "SELECT * FROM songs WHERE album = ? AND is_active = TRUE ORDER BY created_at ASC";
+                // This would need a fetch call, for now just sort by title
+                window.currentAlbumSongs.sort((a, b) => a.title.localeCompare(b.title));
+            } else {
+                // Restore original playlist
+                shuffledPlaylist = [...originalPlaylist];
+            }
+            window.isShuffled = false;
+            shuffleBtn.classList.remove('shuffle-active');
         }
     }
     
     // Toggle repeat
     function toggleRepeat() {
-        isRepeating = !isRepeating;
-        repeatBtn.style.color = isRepeating ? 'var(--primary-color)' : 'var(--text-primary)';
+        window.isRepeating = !window.isRepeating;
+        if (window.isRepeating) {
+            repeatBtn.classList.add('repeat-active');
+        } else {
+            repeatBtn.classList.remove('repeat-active');
+        }
     }
     
     // Event listeners
@@ -576,22 +1119,130 @@ function initEnhancedAudioPlayer() {
         });
     });
     
+    // Album song selection
+    const albumSongItems = document.querySelectorAll('.album-song-item');
+    albumSongItems.forEach((item, index) => {
+        item.addEventListener('click', function(e) {
+            if (e.target.closest('.song-actions')) return;
+            
+            // Get song data from attributes
+            const audioSrc = item.dataset.audio;
+            const title = item.dataset.title;
+            const artist = item.dataset.artist;
+            const album = item.dataset.album;
+            const songIndex = parseInt(item.dataset.index);
+            
+            // Create song object for album context
+            const songData = {
+                file_path: audioSrc,
+                title: title,
+                artist: artist,
+                album: album
+            };
+            
+            // Set current album context
+            window.currentAlbumSongs = Array.from(albumSongItems).map(songItem => ({
+                file_path: songItem.dataset.audio,
+                title: songItem.dataset.title,
+                artist: songItem.dataset.artist,
+                album: songItem.dataset.album
+            }));
+            window.currentAlbumName = album;
+            window.currentSongIndex = songIndex;
+            
+            // Load and play selected song
+            loadAlbumSongFromData(songData);
+            togglePlayPause();
+            
+            // Update active state immediately
+            updateAlbumSongStates();
+        });
+    });
+    
+    // Function to update album song states
+    function updateAlbumSongStates() {
+        const allSongItems = document.querySelectorAll('.album-song-item');
+        allSongItems.forEach((item, i) => {
+            const isActive = i === window.currentSongIndex;
+            const isPlaying = isActive && window.isPlaying;
+            
+            item.classList.toggle('active', isActive);
+            item.classList.toggle('playing', isPlaying);
+        });
+        
+        // Debug: Log current state
+        console.log('Album song states updated:', {
+            currentIndex: window.currentSongIndex,
+            isPlaying: window.isPlaying,
+            totalSongs: allSongItems.length
+        });
+    }
+    
+    // Load album song from data
+    function loadAlbumSongFromData(song) {
+        const audioPlayer = document.getElementById('audioPlayer');
+        
+        // Handle both API data and DOM data formats
+        const audioSrc = song.file_path || song.file_path;
+        const title = song.title || song.title;
+        const artist = song.artist || song.artist;
+        
+        audioPlayer.src = audioSrc;
+        
+        // Update now playing display
+        document.getElementById('currentSongTitle').textContent = title;
+        document.getElementById('currentSongArtist').textContent = artist;
+        
+        // Update active state in album songs
+        updateAlbumSongStates();
+    }
+    
     // Previous/Next buttons
     if (prevBtn) {
         prevBtn.addEventListener('click', function() {
-            const songs = isShuffled ? shuffledPlaylist : originalPlaylist;
-            currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
-            loadSong(currentSongIndex);
-            if (isPlaying) audioPlayer.play();
+            if (window.currentAlbumSongs) {
+                // Navigate within album (API-loaded songs)
+                window.currentSongIndex = (window.currentSongIndex - 1 + window.currentAlbumSongs.length) % window.currentAlbumSongs.length;
+                const songData = window.currentAlbumSongs[window.currentSongIndex];
+                const formattedSong = {
+                    file_path: songData.file_path,
+                    title: songData.title,
+                    artist: songData.artist,
+                    album: window.currentAlbumName
+                };
+                loadAlbumSongFromData(formattedSong);
+                if (window.isPlaying) audioPlayer.play();
+            } else {
+                // Navigate within playlist
+                const songs = window.isShuffled ? shuffledPlaylist : originalPlaylist;
+                window.currentSongIndex = (window.currentSongIndex - 1 + songs.length) % songs.length;
+                loadSong(window.currentSongIndex);
+                if (window.isPlaying) audioPlayer.play();
+            }
         });
     }
     
     if (nextBtn) {
         nextBtn.addEventListener('click', function() {
-            const songs = isShuffled ? shuffledPlaylist : originalPlaylist;
-            currentSongIndex = (currentSongIndex + 1) % songs.length;
-            loadSong(currentSongIndex);
-            if (isPlaying) audioPlayer.play();
+            if (window.currentAlbumSongs) {
+                // Navigate within album (API-loaded songs)
+                window.currentSongIndex = (window.currentSongIndex + 1) % window.currentAlbumSongs.length;
+                const songData = window.currentAlbumSongs[window.currentSongIndex];
+                const formattedSong = {
+                    file_path: songData.file_path,
+                    title: songData.title,
+                    artist: songData.artist,
+                    album: window.currentAlbumName
+                };
+                loadAlbumSongFromData(formattedSong);
+                if (window.isPlaying) audioPlayer.play();
+            } else {
+                // Navigate within playlist
+                const songs = window.isShuffled ? shuffledPlaylist : originalPlaylist;
+                window.currentSongIndex = (window.currentSongIndex + 1) % songs.length;
+                loadSong(window.currentSongIndex);
+                if (window.isPlaying) audioPlayer.play();
+            }
         });
     }
     
@@ -658,21 +1309,156 @@ function initEnhancedAudioPlayer() {
     
     // Auto play next song
     audioPlayer.addEventListener('ended', function() {
-        if (isRepeating) {
+        if (window.isRepeating) {
             audioPlayer.currentTime = 0;
             audioPlayer.play();
         } else {
-            const songs = isShuffled ? shuffledPlaylist : originalPlaylist;
-            currentSongIndex = (currentSongIndex + 1) % songs.length;
-            loadSong(currentSongIndex);
-            audioPlayer.play();
+            if (window.currentAlbumSongs) {
+                // Navigate within album (API-loaded songs)
+                window.currentSongIndex = (window.currentSongIndex + 1) % window.currentAlbumSongs.length;
+                const songData = window.currentAlbumSongs[window.currentSongIndex];
+                const formattedSong = {
+                    file_path: songData.file_path,
+                    title: songData.title,
+                    artist: songData.artist,
+                    album: window.currentAlbumName
+                };
+                loadAlbumSongFromData(formattedSong);
+                audioPlayer.play();
+            } else {
+                // Navigate within playlist
+                const songs = window.isShuffled ? shuffledPlaylist : originalPlaylist;
+                window.currentSongIndex = (window.currentSongIndex + 1) % songs.length;
+                loadSong(window.currentSongIndex);
+                audioPlayer.play();
+            }
         }
     });
     
-    // Load first song
-    if (songItems.length > 0) {
-        loadSong(0);
+    // Search functionality - Initialize after DOM is ready
+    function initializeSearch() {
+        const searchInput = document.getElementById('playlistSearch');
+        const clearSearchBtn = document.getElementById('clearSearch');
+        const songItems = document.querySelectorAll('.song-item');
+        
+        console.log('Initializing search...'); // Debug
+        console.log('Search input found:', searchInput); // Debug
+        console.log('Clear button found:', clearSearchBtn); // Debug
+        console.log('Song items found:', songItems.length); // Debug
+        
+        if (searchInput && clearSearchBtn) {
+            // Remove existing listeners to prevent duplicates
+            searchInput.removeEventListener('input', handleSearchInput);
+            clearSearchBtn.removeEventListener('click', handleClearSearch);
+            
+            // Add new listeners
+            searchInput.addEventListener('input', handleSearchInput);
+            clearSearchBtn.addEventListener('click', handleClearSearch);
+            
+            console.log('Search event listeners attached'); // Debug
+        } else {
+            console.log('Search elements not found!'); // Debug
+        }
     }
+    
+    // Handle search input
+    function handleSearchInput(e) {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        console.log('Search term:', searchTerm); // Debug log
+        filterSongs(searchTerm);
+    }
+    
+    // Handle clear search
+    function handleClearSearch() {
+        const searchInput = document.getElementById('playlistSearch');
+        searchInput.value = '';
+        console.log('Search cleared'); // Debug log
+        filterSongs('');
+    }
+    
+    function filterSongs(searchTerm) {
+        const songItems = document.querySelectorAll('.song-item');
+        let visibleCount = 0;
+        
+        console.log('Starting filter with term:', searchTerm); // Debug
+        console.log('Total song items found:', songItems.length); // Debug
+        
+        if (searchTerm === '') {
+            // Show all songs if search is empty
+            console.log('Empty search - showing all songs'); // Debug
+            songItems.forEach(item => {
+                item.style.display = 'flex';
+            });
+            // Remove no results message
+            const noResultsMsg = document.querySelector('.no-search-results');
+            if (noResultsMsg) {
+                noResultsMsg.remove();
+            }
+            return;
+        }
+        
+        // Handle both comma and 'or' separators
+        let searchTerms;
+        if (searchTerm.toLowerCase().includes(' or ')) {
+            // Split by 'or' for OR logic
+            searchTerms = searchTerm.toLowerCase().split('or').map(term => term.trim()).filter(term => term !== '');
+            console.log('Using OR logic with terms:', searchTerms); // Debug
+        } else {
+            // Split by comma for AND logic
+            searchTerms = searchTerm.toLowerCase().split(',').map(term => term.trim()).filter(term => term !== '');
+            console.log('Using AND logic with terms:', searchTerms); // Debug
+        }
+        
+        console.log('Processing', searchTerms.length, 'search terms'); // Debug
+        
+        songItems.forEach((item, index) => {
+            const title = item.querySelector('.song-title')?.textContent.toLowerCase() || '';
+            const artist = item.querySelector('.song-artist')?.textContent.toLowerCase() || '';
+            const genre = item.querySelector('.song-genre')?.textContent.toLowerCase() || '';
+            const album = item.querySelector('.song-album')?.textContent.toLowerCase() || '';
+            
+            console.log(`Song ${index}:`, { title, artist, genre, album }); // Debug
+            
+            // Check if ANY search term matches ANY field
+            const matches = searchTerms.some(term => 
+                title.includes(term) || 
+                artist.includes(term) || 
+                genre.includes(term) || 
+                album.includes(term)
+            );
+            
+            console.log(`Song ${index} matches:`, matches); // Debug
+            
+            if (matches) {
+                item.style.display = 'flex';
+                visibleCount++;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+        
+        console.log('Visible songs count:', visibleCount); // Debug
+        
+        // Show no results message if needed
+        const playlist = document.querySelector('.playlist');
+        let noResultsMsg = playlist.querySelector('.no-search-results');
+        
+        if (visibleCount === 0) {
+            console.log('No matches found - showing no results message'); // Debug
+            if (!noResultsMsg) {
+                noResultsMsg = document.createElement('div');
+                noResultsMsg.className = 'no-search-results';
+                noResultsMsg.innerHTML = `<p>No songs found for "${searchTerm}"</p>`;
+                playlist.appendChild(noResultsMsg);
+            }
+        } else if (noResultsMsg) {
+            console.log('Removing no results message'); // Debug
+            noResultsMsg.remove();
+        }
+    }
+    
+    // Initialize search functionality
+    initializeSearch();
 }
 
 // Utility functions
@@ -719,7 +1505,7 @@ function addToFavorites(songId) {
 
 // Play album functionality
 function playAlbum(albumName) {
-    // Get all songs from the selected album
+    // Get all songs from selected album
     fetch('includes/get-album-songs.php', {
         method: 'POST',
         headers: {
@@ -730,65 +1516,22 @@ function playAlbum(albumName) {
     .then(response => response.json())
     .then(data => {
         if (data.success && data.songs.length > 0) {
-            // Replace current playlist with album songs
-            const playlistContainer = document.getElementById('playlistContainer');
-            const playlistDiv = playlistContainer.querySelector('.playlist');
+            // Set current album songs
+            window.currentAlbumSongs = data.songs;
+            window.currentAlbumName = albumName;
             
-            // Clear existing playlist
-            playlistDiv.innerHTML = '';
-            
-            // Add album songs to playlist
-            data.songs.forEach((song, index) => {
-                const songItem = document.createElement('div');
-                songItem.className = 'song-item';
-                songItem.dataset.audio = song.file_path;
-                songItem.dataset.index = index;
-                
-                songItem.innerHTML = `
-                    <div class="song-number">${index + 1}</div>
-                    <img src="${song.cover_image || 'assets/images/default-album.jpg'}" 
-                         alt="${song.title}" class="song-cover">
-                    <div class="song-info">
-                        <div class="song-title">${song.title}</div>
-                        <div class="song-artist">${song.artist}</div>
-                        ${song.genre ? `<div class="song-genre">${song.genre}</div>` : ''}
-                    </div>
-                    <div class="song-meta">
-                        <div class="song-duration">${song.duration}</div>
-                        ${song.release_date ? `<div class="song-release">${new Date(song.release_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>` : ''}
-                    </div>
-                    <div class="song-actions">
-                        <button class="btn-icon" onclick="downloadSong('${song.file_path}')" title="Download">
-                            <i class="fas fa-download"></i>
-                        </button>
-                        <button class="btn-icon" onclick="shareSong('${song.title}')" title="Share">
-                            <i class="fas fa-share"></i>
-                        </button>
-                        <button class="btn-icon" onclick="addToFavorites(${song.id})" title="Add to Favorites">
-                            <i class="far fa-heart"></i>
-                        </button>
-                    </div>
-                `;
-                
-                playlistDiv.appendChild(songItem);
-                
-                // Add click event listener
-                songItem.addEventListener('click', function(e) {
-                    if (e.target.closest('.song-actions')) return;
-                    
-                    // Update current song index
-                    currentSongIndex = index;
-                    originalPlaylist = Array.from(playlistDiv.querySelectorAll('.song-item'));
-                    
-                    // Load and play first song
-                    loadSong(index);
-                    togglePlayPause();
-                });
-            });
+            // Create song objects for the new loading function
+            const songData = data.songs[0];
+            const formattedSong = {
+                file_path: songData.file_path,
+                title: songData.title,
+                artist: songData.artist,
+                album: albumName
+            };
             
             // Load first song from album
-            currentSongIndex = 0;
-            loadSong(0);
+            window.currentSongIndex = 0;
+            loadAlbumSongFromData(formattedSong);
             togglePlayPause();
             
             showToast(`Playing album: ${albumName}`, 'success');
@@ -800,6 +1543,27 @@ function playAlbum(albumName) {
         showToast('Failed to load album', 'error');
     });
 }
+
+// Load specific song from current album
+function loadAlbumSong(index) {
+    if (currentAlbumSongs && currentAlbumSongs[index]) {
+        const song = currentAlbumSongs[index];
+        
+        // Update audio player
+        const audioPlayer = document.getElementById('audioPlayer');
+        audioPlayer.src = song.file_path;
+        
+        // Update now playing display
+        document.getElementById('currentSongTitle').textContent = song.title;
+        document.getElementById('currentSongArtist').textContent = song.artist;
+        
+        // Update active state in album songs
+        document.querySelectorAll('.album-song-item').forEach((item, i) => {
+            item.classList.toggle('active', i === index);
+        });
+    }
+}
+
 </script>
 
 <!-- Hidden audio element -->
