@@ -52,18 +52,34 @@ require_once __DIR__ . '/functions.php';
             </div>
             
             <ul class="nav-links">
-                <li><a href="<?php echo APP_URL; ?>/index.php">Home</a></li>
-                <li><a href="<?php echo APP_URL; ?>/music.php">Music</a></li>
-                <li><a href="<?php echo APP_URL; ?>/videos.php">Videos</a></li>
-                <li><a href="<?php echo APP_URL; ?>/tour.php">Tour</a></li>
-                <li><a href="<?php echo APP_URL; ?>/about.php">About</a></li>
-                <li><a href="<?php echo APP_URL; ?>/contact.php">Contact</a></li>
+                <li><a href="<?php echo APP_URL; ?>/index.php" class="nav-link">Home</a></li>
+                <li><a href="<?php echo APP_URL; ?>/music.php" class="nav-link">Music</a></li>
+                <li><a href="<?php echo APP_URL; ?>/videos.php" class="nav-link">Videos</a></li>
+                <li><a href="<?php echo APP_URL; ?>/tour.php" class="nav-link">Tour</a></li>
+                <li><a href="<?php echo APP_URL; ?>/about.php" class="nav-link">About</a></li>
+                <li><a href="<?php echo APP_URL; ?>/contact.php" class="nav-link">Contact</a></li>
             </ul>
             
-            <div class="mobile-menu-toggle">
-                <span></span>
-                <span></span>
-                <span></span>
+            <div class="nav-actions">
+                <div class="social-links">
+                    <a href="#" class="social-link" aria-label="Facebook">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="social-link" aria-label="Twitter">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="#" class="social-link" aria-label="Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                </div>
+                <button class="theme-toggle" aria-label="Toggle theme">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <div class="mobile-menu-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
             </div>
         </nav>
     </header>
