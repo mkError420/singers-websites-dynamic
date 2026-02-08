@@ -4,30 +4,47 @@ require_once __DIR__ . '/includes/database.php';
 require_once __DIR__ . '/includes/functions.php';
 
 // Get all videos
-$allVideos = get_videos();
+$all_videos = get_videos();
+
+// Get video categories for filtering
+$categories = [];
+foreach ($all_videos as $video) {
+    $category = $video['video_type'] ?? 'youtube';
+    if (!in_array($category, $categories)) {
+        $categories[] = $category;
+    }
+}
 ?>
 
-<!-- Videos Section -->
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-content">
+        <h1>Music Videos</h1>
+        <p>Watch our latest music videos, live performances, and behind-the-scenes content.</p>
+    </div>
+</section>
+
 <section class="section">
     <div class="container">
         <div class="section-title">
-            <h2>Videos</h2>
-            <p>Music videos, performances, and behind the scenes content</p>
+            <h2>Our Videos</h2>
+            <p>Explore our collection of music videos and performances</p>
         </div>
         
+        <!-- Filter Buttons -->
         <div class="video-filters">
             <div class="filter-buttons">
-                <button class="filter-btn active" data-filter="all">All Videos</button>
-                <button class="filter-btn" data-filter="music">Music Videos</button>
-                <button class="filter-btn" data-filter="live">Live Performances</button>
-                <button class="filter-btn" data-filter="behind">Behind the Scenes</button>
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="youtube">YouTube</button>
+                <button class="filter-btn" data-filter="vimeo">Vimeo</button>
             </div>
         </div>
         
+        <!-- Video Grid -->
         <div class="video-grid">
-            <?php if (!empty($allVideos)): ?>
-                <?php foreach ($allVideos as $video): ?>
-                    <div class="video-item" data-category="music">
+            <?php if (!empty($all_videos)): ?>
+                <?php foreach ($all_videos as $video): ?>
+                    <div class="video-item">
                         <div class="video-thumbnail-container">
                             <img src="<?php echo APP_URL . '/' . ($video['thumbnail'] ?: 'assets/images/default-video.jpg'); ?>" 
                                  alt="<?php echo xss_clean($video['title']); ?>" 
@@ -37,19 +54,10 @@ $allVideos = get_videos();
                                 <div class="play-button">
                                     <i class="fas fa-play"></i>
                                 </div>
-                                <div class="video-duration">3:45</div>
-                            </div>
-                            <div class="form-group">
-                                <label for="video_url">Video URL *</label>
-                                <input type="text" id="video_url" name="video_url" class="form-control" 
-                                       placeholder="YouTube Video ID or full URL" required>
-                                <div class="help-text">
-                                    <strong>YouTube:</strong> https://www.youtube.com/watch?v=VIDEO_ID<br>
-                                    <strong>Or use Video ID:</strong> VIDEO_ID<br>
-                                    <strong>Vimeo:</strong> https://vimeo.com/VIDEO_ID
-                                </div>
+                                <div class="video-duration"><?php echo $video['duration'] ?? '3:45'; ?></div>
                             </div>
                         </div>
+                        
                         <div class="video-info">
                             <h3 class="video-title"><?php echo xss_clean($video['title']); ?></h3>
                             <p class="video-description"><?php echo truncate_text(xss_clean($video['description']), 120); ?></p>
@@ -57,55 +65,20 @@ $allVideos = get_videos();
                                 <span class="video-views">1.2M views</span>
                                 <span class="video-date"><?php echo format_date($video['created_at'], 'M j, Y'); ?></span>
                             </div>
-                            <div class="video-actions">
-                                <button class="btn-icon" onclick="shareVideo('<?php echo xss_clean($video['title']); ?>', '<?php echo $video['video_url']; ?>')" title="Share">
-                                    <i class="fas fa-share"></i>
-                                </button>
-                                <button class="btn-icon" onclick="likeVideo(<?php echo $video['id']; ?>)" title="Like">
-                                    <i class="far fa-heart"></i>
-                                </button>
-                                <button class="btn-icon" onclick="addToWatchLater(<?php echo $video['id']; ?>)" title="Watch Later">
-                                    <i class="far fa-clock"></i>
-                                </button>
-                            </div>
                         </div>
                     </div>
                 <?php endforeach; ?>
             <?php else: ?>
-                <div class="no-content">
-                    <p>No videos available yet. Check back soon!</p>
+                <div class="no-videos">
+                    <h3>No videos found</h3>
+                    <p>Check back soon for new content!</p>
                 </div>
             <?php endif; ?>
-        </div>
-        
-        <!-- Load More Button -->
-        <div class="text-center" style="margin-top: 3rem;">
-            <button id="loadMoreBtn" class="btn btn-primary">Load More Videos</button>
         </div>
     </div>
 </section>
 
-<!-- Video Modal -->
-<div id="videoModal" class="video-modal">
-    <div class="modal-content">
-        <span class="close-modal">&times;</span>
-        <div class="video-container">
-            <iframe id="modalVideo" src="" frameborder="0" allowfullscreen></iframe>
-        </div>
-        <div class="modal-info">
-            <h3 id="modalVideoTitle"></h3>
-            <p id="modalVideoDescription"></p>
-            <div class="modal-actions">
-                <button class="btn btn-primary" id="playPauseBtn" onclick="toggleVideoPlay()">
-                    <i class="fas fa-play"></i> Play
-                </button>
-                <button class="btn secondary" onclick="shareCurrentVideo()">Share</button>
-                <button class="btn secondary" onclick="addToWatchLaterModal()">Watch Later</button>
-            </div>
-        </div>
-    </div>
-</div>
-
+<!-- Video Scripts -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     initVideoFilters();
@@ -140,40 +113,57 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
-function toggleVideoPlay() {
-    const modalVideo = document.getElementById('modalVideo');
-    const playPauseBtn = document.getElementById('playPauseBtn');
-    const playPauseIcon = playPauseBtn.querySelector('i');
-    
-    if (!modalVideo || !playPauseBtn) return;
-    
-    if (modalVideo.paused) {
-        modalVideo.play();
-        playPauseIcon.className = 'fas fa-pause';
-    } else {
-        modalVideo.pause();
-        playPauseIcon.className = 'fas fa-play';
-    }
-}
-
-function shareCurrentVideo() {
-    const videoTitle = document.getElementById('modalVideoTitle').textContent;
-    const videoUrl = document.getElementById('modalVideo').src;
-    
+function shareVideo(title, url) {
     if (navigator.share) {
         navigator.share({
-            title: videoTitle,
-            text: `Check out ${videoTitle} by ${APP_NAME}`,
-            url: videoUrl
+            title: title,
+            text: `Check out ${title} by ${APP_NAME}`,
+            url: url
         });
     } else {
-        navigator.clipboard.writeText(videoUrl);
+        navigator.clipboard.writeText(url);
         showToast('Link copied to clipboard!', 'success');
     }
 }
 
-function addToWatchLaterModal() {
-    showToast('Added to Watch Later!', 'success');
+function likeVideo(videoId) {
+    fetch('includes/video-likes-handler.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ video_id: videoId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Video liked!', 'success');
+            event.target.classList.remove('far');
+            event.target.classList.add('fas');
+        }
+    })
+    .catch(error => {
+        showToast('Failed to like video', 'error');
+    });
+}
+
+function addToWatchLater(videoId) {
+    fetch('includes/watchlater-handler.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ video_id: videoId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Added to Watch Later!', 'success');
+        }
+    })
+    .catch(error => {
+        showToast('Failed to add to Watch Later', 'error');
+    });
 }
 </script>
 
@@ -404,10 +394,27 @@ function addToWatchLaterModal() {
 }
 </style>
 
+<!-- Video Modal -->
+<div id="videoModal" class="video-modal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <div class="video-container">
+            <iframe id="modalVideo" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+        <div class="modal-info">
+            <h3 id="modalVideoTitle"></h3>
+            <p id="modalVideoDescription"></p>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="closeVideoModal()">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     initVideoFilters();
-    initVideoModal();
+    initSimpleVideoClick();
 });
 
 function initVideoFilters() {
@@ -434,151 +441,97 @@ function initVideoFilters() {
     });
 }
 
-function initVideoModal() {
+function initSimpleVideoClick() {
+    const videoThumbnails = document.querySelectorAll('.video-thumbnail');
     const videoModal = document.getElementById('videoModal');
     const modalVideo = document.getElementById('modalVideo');
     const closeModal = document.querySelector('.close-modal');
-    const videoThumbnails = document.querySelectorAll('.video-thumbnail');
     
-    if (videoModal && modalVideo) {
-        videoThumbnails.forEach(thumbnail => {
-            thumbnail.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const videoUrl = this.dataset.videoUrl;
-                const videoItem = this.closest('.video-item');
-                const videoTitle = videoItem.querySelector('.video-title').textContent;
-                const videoDescription = videoItem.querySelector('.video-description').textContent;
-                
-                // Convert YouTube URL to embed format
-                let embedUrl = videoUrl;
-                try {
-                    if (videoUrl.includes('youtube.com/watch?v=')) {
-                        const videoId = videoUrl.split('v=')[1];
-                        embedUrl = `https://www.youtube.com/embed/${videoId}`;
-                    } else if (videoUrl.includes('youtu.be/')) {
-                        const videoId = videoUrl.split('/')[3];
-                        embedUrl = `https://www.youtube.com/embed/${videoId}`;
-                    } else if (videoUrl.includes('youtube.com/embed/')) {
-                        // Already embed format, use as is
-                        embedUrl = videoUrl;
-                    } else {
-                        // Use original URL for other platforms
-                        embedUrl = videoUrl;
-                    }
-                } catch (error) {
-                    console.error('Error converting video URL:', error);
-                    showToast('Invalid video URL format', 'error');
-                    return;
+    console.log('Found video thumbnails:', videoThumbnails.length);
+    
+    videoThumbnails.forEach(thumbnail => {
+        thumbnail.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const videoUrl = this.dataset.videoUrl;
+            const videoItem = this.closest('.video-item');
+            const videoTitle = videoItem.querySelector('.video-title').textContent;
+            const videoDescription = videoItem.querySelector('.video-description').textContent;
+            
+            console.log('Opening video in modal:', videoUrl);
+            
+            // Convert YouTube URL to embed format
+            let embedUrl = videoUrl;
+            console.log('Original URL:', videoUrl);
+            
+            try {
+                if (videoUrl.includes('m.youtube.com/watch?v=')) {
+                    // Mobile YouTube URL: https://m.youtube.com/watch?v=VIDEO_ID
+                    const videoId = videoUrl.split('v=')[1]?.split('&')[0];
+                    embedUrl = `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1`;
+                    console.log('Mobile YouTube converted:', embedUrl);
+                } else if (videoUrl.includes('youtube.com/watch?v=')) {
+                    // Standard YouTube URL: https://www.youtube.com/watch?v=VIDEO_ID
+                    const videoId = videoUrl.split('v=')[1]?.split('&')[0];
+                    embedUrl = `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1`;
+                    console.log('Standard YouTube converted:', embedUrl);
+                } else if (videoUrl.includes('youtu.be/')) {
+                    // Short YouTube URL: https://youtu.be/VIDEO_ID
+                    const videoId = videoUrl.split('youtu.be/')[1]?.split('?')[0];
+                    embedUrl = `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1`;
+                    console.log('Short YouTube converted:', embedUrl);
+                } else if (videoUrl.includes('youtube.com/embed/')) {
+                    // Already embed format, just add parameters
+                    const baseUrl = videoUrl.split('?')[0];
+                    embedUrl = `${baseUrl}?rel=0&modestbranding=1&autoplay=1`;
+                    console.log('Already embed format:', embedUrl);
+                } else {
+                    console.log('Non-YouTube URL, using as-is:', videoUrl);
                 }
-                
-                // Set video info and open modal
-                try {
-                    document.getElementById('modalVideoTitle').textContent = videoTitle;
-                    document.getElementById('modalVideoDescription').textContent = videoDescription;
-                    modalVideo.src = embedUrl;
-                    videoModal.style.display = 'flex';
-                    document.body.style.overflow = 'hidden';
-                    
-                    console.log('Video URL:', embedUrl);
-                    console.log('Video Title:', videoTitle);
-                } catch (error) {
-                    console.error('Error setting video:', error);
-                    showToast('Failed to load video', 'error');
-                    return;
-                }
-                
-                modalVideo.addEventListener('loadeddata', function() {
-                    // Video is ready to play
-                    console.log('Video loaded and ready to play');
-                });
-                
-                modalVideo.addEventListener('error', function() {
-                    console.error('Video error:', error);
-                    showToast('Failed to load video', 'error');
-                });
-            });
-        });
-        
-        if (closeModal) {
-            closeModal.addEventListener('click', closeVideoModal);
-        }
-        
-        videoModal.addEventListener('click', function(e) {
-            if (e.target === videoModal) {
-                closeVideoModal();
+            } catch (error) {
+                console.error('Error converting URL:', error);
+                embedUrl = videoUrl;
             }
+            
+            console.log('Embed URL:', embedUrl);
+            
+            // Set video info and open modal
+            document.getElementById('modalVideoTitle').textContent = videoTitle;
+            document.getElementById('modalVideoDescription').textContent = videoDescription;
+            modalVideo.src = embedUrl;
+            videoModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
         });
-        
-        // Close modal with Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && videoModal.style.display === 'flex') {
-                closeVideoModal();
-            }
-        });
+    });
+    
+    // Close modal events
+    if (closeModal) {
+        closeModal.addEventListener('click', closeVideoModal);
     }
     
-    function closeVideoModal() {
-        if (modalVideo) {
-            modalVideo.pause();
+    videoModal.addEventListener('click', function(e) {
+        if (e.target === videoModal) {
+            closeVideoModal();
         }
-        videoModal.style.display = 'none';
-        document.body.style.overflow = 'auto';
-    }
-}
-
-function shareVideo(title, url) {
-    if (navigator.share) {
-        navigator.share({
-            title: title,
-            text: `Check out ${title} by ${APP_NAME}`,
-            url: url
-        });
-    } else {
-        navigator.clipboard.writeText(url);
-        showToast('Link copied to clipboard!', 'success');
-    }
-}
-
-function likeVideo(videoId) {
-    fetch('includes/video-likes-handler.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ video_id: videoId })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showToast('Video liked!', 'success');
-            event.target.classList.remove('far');
-            event.target.classList.add('fas');
+    });
+    
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && videoModal.style.display === 'flex') {
+            closeVideoModal();
         }
-    })
-    .catch(error => {
-        showToast('Failed to like video', 'error');
     });
 }
 
-function addToWatchLater(videoId) {
-    fetch('includes/watchlater-handler.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ video_id: videoId })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showToast('Added to Watch Later!', 'success');
-        }
-    })
-    .catch(error => {
-        showToast('Failed to add to Watch Later', 'error');
-    });
+function closeVideoModal() {
+    const videoModal = document.getElementById('videoModal');
+    const modalVideo = document.getElementById('modalVideo');
+    
+    if (modalVideo) {
+        modalVideo.src = '';
+    }
+    videoModal.style.display = 'none';
+    document.body.style.overflow = 'auto';
 }
 </script>
 
