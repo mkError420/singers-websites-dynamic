@@ -28,6 +28,10 @@
     --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.6);
     --glass-bg: rgba(255, 255, 255, 0.05);
     --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-blur: blur(20px);
+    --glass-blur-md: blur(25px);
+    --glass-blur-lg: blur(30px);
+    --glass-blur-xl: blur(35px);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
@@ -1497,6 +1501,47 @@ body[data-theme="light"] {
         transition: none;
     }
 }
+
+/* Admin Sidebar Styles */
+.admin-sidebar {
+    width: 250px;
+    background: var(--dark-secondary);
+    padding: 2rem 0;
+    border-right: 1px solid var(--border-color);
+    height: 100vh;
+    overflow-y: auto;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+}
+
+.admin-sidebar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.admin-sidebar::-webkit-scrollbar-track {
+    background: var(--dark-tertiary);
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb {
+    background: var(--glass-border);
+    border-radius: 4px;
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+}
+
+.admin-sidebar::-webkit-scrollbar-track:hover {
+    background: var(--dark-tertiary);
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb:active {
+    background: var(--primary-color);
+}
+
 .toast {
     position: fixed;
     bottom: 20px;
