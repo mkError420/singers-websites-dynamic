@@ -341,11 +341,23 @@ function initVideoModal() {
     
     if (videoModal && modalVideo) {
         videoThumbnails.forEach(thumbnail => {
-            thumbnail.addEventListener('click', function() {
+            thumbnail.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
                 const videoUrl = this.dataset.videoUrl;
+                const videoTitle = this.closest('.video-item').querySelector('.video-title').textContent;
+                const videoDescription = this.closest('.video-item').querySelector('.video-description').textContent;
+                
+                // Set video info
+                document.getElementById('modalVideoTitle').textContent = videoTitle;
+                document.getElementById('modalVideoDescription').textContent = videoDescription;
                 modalVideo.src = videoUrl;
                 videoModal.style.display = 'flex';
                 document.body.style.overflow = 'hidden';
+                
+                // Don't auto-play - just load the video
+                modalVideo.load();
             });
         });
         
@@ -489,12 +501,6 @@ const optimizedScroll = throttle(function() {
 
 // Initialize optimized scroll listener
 window.addEventListener('scroll', optimizedScroll);
-
-// Error handling
-window.addEventListener('error', function(e) {
-    console.error('JavaScript Error:', e.error);
-    showToast('An unexpected error occurred', 'error');
-});
 
 // Service Worker registration for PWA (optional)
 if ('serviceWorker' in navigator) {

@@ -39,6 +39,16 @@ $allVideos = get_videos();
                                 </div>
                                 <div class="video-duration">3:45</div>
                             </div>
+                            <div class="form-group">
+                                <label for="video_url">Video URL *</label>
+                                <input type="text" id="video_url" name="video_url" class="form-control" 
+                                       placeholder="YouTube Video ID or full URL" required>
+                                <div class="help-text">
+                                    <strong>YouTube:</strong> https://www.youtube.com/watch?v=VIDEO_ID<br>
+                                    <strong>Or use Video ID:</strong> VIDEO_ID<br>
+                                    <strong>Vimeo:</strong> https://vimeo.com/VIDEO_ID
+                                </div>
+                            </div>
                         </div>
                         <div class="video-info">
                             <h3 class="video-title"><?php echo xss_clean($video['title']); ?></h3>
@@ -86,12 +96,86 @@ $allVideos = get_videos();
             <h3 id="modalVideoTitle"></h3>
             <p id="modalVideoDescription"></p>
             <div class="modal-actions">
-                <button class="btn btn-primary" onclick="shareCurrentVideo()">Share</button>
+                <button class="btn btn-primary" id="playPauseBtn" onclick="toggleVideoPlay()">
+                    <i class="fas fa-play"></i> Play
+                </button>
+                <button class="btn secondary" onclick="shareCurrentVideo()">Share</button>
                 <button class="btn secondary" onclick="addToWatchLaterModal()">Watch Later</button>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    initVideoFilters();
+    initVideoModal();
+});
+
+function showToast(message, type = 'success') {
+    // Remove existing toast
+    const existingToast = document.querySelector('.toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    
+    // Create new toast
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    
+    document.body.appendChild(toast);
+    
+    // Show toast
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 100);
+    
+    // Hide toast after 3 seconds
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 3000);
+}
+
+function toggleVideoPlay() {
+    const modalVideo = document.getElementById('modalVideo');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const playPauseIcon = playPauseBtn.querySelector('i');
+    
+    if (!modalVideo || !playPauseBtn) return;
+    
+    if (modalVideo.paused) {
+        modalVideo.play();
+        playPauseIcon.className = 'fas fa-pause';
+    } else {
+        modalVideo.pause();
+        playPauseIcon.className = 'fas fa-play';
+    }
+}
+
+function shareCurrentVideo() {
+    const videoTitle = document.getElementById('modalVideoTitle').textContent;
+    const videoUrl = document.getElementById('modalVideo').src;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: videoTitle,
+            text: `Check out ${videoTitle} by ${APP_NAME}`,
+            url: videoUrl
+        });
+    } else {
+        navigator.clipboard.writeText(videoUrl);
+        showToast('Link copied to clipboard!', 'success');
+    }
+}
+
+function addToWatchLaterModal() {
+    showToast('Added to Watch Later!', 'success');
+}
+</script>
 
 <style>
 /* Videos Page Specific Styles */
@@ -152,42 +236,12 @@ $allVideos = get_videos();
     width: 100%;
     height: 200px;
     object-fit: cover;
+    cursor: pointer;
     transition: transform 0.3s ease;
 }
 
 .video-item:hover .video-thumbnail {
     transform: scale(1.05);
-}
-
-.video-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.video-item:hover .video-overlay {
-    opacity: 1;
-}
-
-.play-button {
-    width: 60px;
-    height: 60px;
-    background: var(--primary-color);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.5rem;
-    transition: transform 0.3s ease;
 }
 
 .play-button:hover {
@@ -307,6 +361,21 @@ $allVideos = get_videos();
 .modal-actions {
     display: flex;
     gap: 1rem;
+    justify-content: center;
+}
+
+.modal-actions .btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.modal-actions .btn i {
+    font-size: 1rem;
 }
 
 @media (max-width: 768px) {
@@ -363,6 +432,100 @@ function initVideoFilters() {
             });
         });
     });
+}
+
+function initVideoModal() {
+    const videoModal = document.getElementById('videoModal');
+    const modalVideo = document.getElementById('modalVideo');
+    const closeModal = document.querySelector('.close-modal');
+    const videoThumbnails = document.querySelectorAll('.video-thumbnail');
+    
+    if (videoModal && modalVideo) {
+        videoThumbnails.forEach(thumbnail => {
+            thumbnail.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const videoUrl = this.dataset.videoUrl;
+                const videoItem = this.closest('.video-item');
+                const videoTitle = videoItem.querySelector('.video-title').textContent;
+                const videoDescription = videoItem.querySelector('.video-description').textContent;
+                
+                // Convert YouTube URL to embed format
+                let embedUrl = videoUrl;
+                try {
+                    if (videoUrl.includes('youtube.com/watch?v=')) {
+                        const videoId = videoUrl.split('v=')[1];
+                        embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                    } else if (videoUrl.includes('youtu.be/')) {
+                        const videoId = videoUrl.split('/')[3];
+                        embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                    } else if (videoUrl.includes('youtube.com/embed/')) {
+                        // Already embed format, use as is
+                        embedUrl = videoUrl;
+                    } else {
+                        // Use original URL for other platforms
+                        embedUrl = videoUrl;
+                    }
+                } catch (error) {
+                    console.error('Error converting video URL:', error);
+                    showToast('Invalid video URL format', 'error');
+                    return;
+                }
+                
+                // Set video info and open modal
+                try {
+                    document.getElementById('modalVideoTitle').textContent = videoTitle;
+                    document.getElementById('modalVideoDescription').textContent = videoDescription;
+                    modalVideo.src = embedUrl;
+                    videoModal.style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                    
+                    console.log('Video URL:', embedUrl);
+                    console.log('Video Title:', videoTitle);
+                } catch (error) {
+                    console.error('Error setting video:', error);
+                    showToast('Failed to load video', 'error');
+                    return;
+                }
+                
+                modalVideo.addEventListener('loadeddata', function() {
+                    // Video is ready to play
+                    console.log('Video loaded and ready to play');
+                });
+                
+                modalVideo.addEventListener('error', function() {
+                    console.error('Video error:', error);
+                    showToast('Failed to load video', 'error');
+                });
+            });
+        });
+        
+        if (closeModal) {
+            closeModal.addEventListener('click', closeVideoModal);
+        }
+        
+        videoModal.addEventListener('click', function(e) {
+            if (e.target === videoModal) {
+                closeVideoModal();
+            }
+        });
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && videoModal.style.display === 'flex') {
+                closeVideoModal();
+            }
+        });
+    }
+    
+    function closeVideoModal() {
+        if (modalVideo) {
+            modalVideo.pause();
+        }
+        videoModal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
 }
 
 function shareVideo(title, url) {
