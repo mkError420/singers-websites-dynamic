@@ -113,7 +113,7 @@ $allSongs = fetchAll($songs_query, [$songs_per_page, $offset]);
                                 <button class="btn-icon" onclick="downloadSong('<?php echo $song['file_path']; ?>')" title="Download">
                                     <i class="fas fa-download"></i>
                                 </button>
-                                <button class="btn-icon" onclick="shareSong('<?php echo xss_clean($song['title']); ?>')" title="Share">
+                                <button class="btn-icon" onclick="shareSong('<?php echo xss_clean($song['title']); ?>', event)" title="Share">
                                     <i class="fas fa-share"></i>
                                 </button>
                                 <button class="btn-icon" onclick="addToFavorites(<?php echo $song['id']; ?>)" title="Add to Favorites">
@@ -225,7 +225,7 @@ $allSongs = fetchAll($songs_query, [$songs_per_page, $offset]);
                                                     <button class="btn-icon" onclick="downloadSong('<?php echo $song['file_path']; ?>')" title="Download">
                                                         <i class="fas fa-download"></i>
                                                     </button>
-                                                    <button class="btn-icon" onclick="shareSong('<?php echo xss_clean($song['title']); ?>')" title="Share">
+                                                    <button class="btn-icon" onclick="shareSong('<?php echo xss_clean($song['title']); ?>', event)" title="Share">
                                                         <i class="fas fa-share"></i>
                                                     </button>
                                                     <button class="btn-icon" onclick="addToFavorites(<?php echo $song['id']; ?>)" title="Add to Favorites">
@@ -758,7 +758,6 @@ $allSongs = fetchAll($songs_query, [$songs_per_page, $offset]);
     background: var(--dark-secondary);
     border-radius: 15px;
     overflow: hidden;
-    box-shadow: var(--shadow-md);
     transition: transform 0.3s ease;
 }
 
@@ -822,10 +821,9 @@ $allSongs = fetchAll($songs_query, [$songs_per_page, $offset]);
     display: flex;
     align-items: center;
     padding: 0.75rem;
-    background: var(--dark-tertiary);
-    border-radius: 6px;
+    border-bottom: 1px solid var(--border-color);
     cursor: pointer;
-    transition: background 0.3s ease;
+    transition: all 0.3s ease;
     gap: 0.75rem;
 }
 
@@ -1104,6 +1102,12 @@ function initEnhancedAudioPlayer() {
     const playlistToggle = document.getElementById('playlistToggle');
     const playlistContainer = document.getElementById('playlistContainer');
     
+    // Store songItems globally for use in other functions
+    window.songItems = songItems;
+    
+    console.log('Found songItems:', songItems.length); // Debug
+    console.log('Found playAllBtn:', playAllBtn); // Debug
+    
     if (!audioPlayer) return;
     
     // Global variables for album playback
@@ -1154,30 +1158,325 @@ function initEnhancedAudioPlayer() {
     
     // Shuffle playlist
     function shufflePlaylist() {
+        console.log('shufflePlaylist called, isShuffled:', window.isShuffled); // Debug
+        
         if (!window.isShuffled) {
+            console.log('Enabling shuffle...'); // Debug
+            
+            // Enable shuffle
             if (window.currentAlbumSongs) {
+                console.log('Shuffling album songs...'); // Debug
                 // Shuffle album songs
-                window.currentAlbumSongs = [...window.currentAlbumSongs].sort(() => Math.random() - 0.5);
+                const shuffledSongs = [...window.currentAlbumSongs];
+                for (let i = shuffledSongs.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffledSongs[i], shuffledSongs[j]] = [shuffledSongs[j], shuffledSongs[i]];
+                }
+                window.currentAlbumSongs = shuffledSongs;
+                console.log('Album songs shuffled:', shuffledSongs.map(s => s.title)); // Debug
+                
+                // Visually shuffle album song items
+                visuallyShuffleAlbumSongs(shuffledSongs);
             } else {
+                console.log('Shuffling regular playlist...'); // Debug
                 // Shuffle regular playlist
-                shuffledPlaylist = [...originalPlaylist].sort(() => Math.random() - 0.5);
+                const shuffledSongs = [...originalPlaylist];
+                for (let i = shuffledSongs.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffledSongs[i], shuffledSongs[j]] = [shuffledSongs[j], shuffledSongs[i]];
+                }
+                shuffledPlaylist = shuffledSongs;
+                console.log('Playlist shuffled:', shuffledSongs.map(s => s.querySelector('.song-title').textContent)); // Debug
+                
+                // Visually shuffle playlist items
+                visuallyShufflePlaylist(shuffledSongs);
             }
             window.isShuffled = true;
             shuffleBtn.classList.add('shuffle-active');
+            showToast('Shuffle enabled', 'info');
+            
+            console.log('Shuffle enabled, isShuffled:', window.isShuffled); // Debug
+            
+            // If currently playing, update to shuffled position
+            if (window.isPlaying) {
+                const currentSongTitle = document.getElementById('currentSongTitle').textContent;
+                if (window.currentAlbumSongs) {
+                    const newIndex = window.currentAlbumSongs.findIndex(s => s.title === currentSongTitle);
+                    if (newIndex !== -1) {
+                        window.currentSongIndex = newIndex;
+                    }
+                } else {
+                    const currentSong = Array.from(songItems).find(item => 
+                        item.querySelector('.song-title').textContent === currentSongTitle
+                    );
+                    if (currentSong) {
+                        window.currentSongIndex = shuffledPlaylist.indexOf(currentSong);
+                    }
+                }
+            }
         } else {
+            console.log('Disabling shuffle...'); // Debug
+            
+            // Disable shuffle
             if (window.currentAlbumSongs) {
                 // Restore original album order
-                const albumName = window.currentAlbumName;
-                const album_songs_query = "SELECT * FROM songs WHERE album = ? AND is_active = TRUE ORDER BY created_at ASC";
-                // This would need a fetch call, for now just sort by title
                 window.currentAlbumSongs.sort((a, b) => a.title.localeCompare(b.title));
+                console.log('Album songs restored to original order'); // Debug
+                
+                // Visually restore album song order
+                visuallyRestoreAlbumSongs();
             } else {
                 // Restore original playlist
                 shuffledPlaylist = [...originalPlaylist];
+                console.log('Playlist restored to original order'); // Debug
+                
+                // Visually restore playlist order
+                visuallyRestorePlaylist();
             }
             window.isShuffled = false;
             shuffleBtn.classList.remove('shuffle-active');
+            showToast('Shuffle disabled', 'info');
+            
+            console.log('Shuffle disabled, isShuffled:', window.isShuffled); // Debug
+            
+            // If currently playing, update to original position
+            if (window.isPlaying) {
+                const currentSongTitle = document.getElementById('currentSongTitle').textContent;
+                if (window.currentAlbumSongs) {
+                    const newIndex = window.currentAlbumSongs.findIndex(s => s.title === currentSongTitle);
+                    if (newIndex !== -1) {
+                        window.currentSongIndex = newIndex;
+                    }
+                } else {
+                    const currentSong = Array.from(songItems).find(item => 
+                        item.querySelector('.song-title').textContent === currentSongTitle
+                    );
+                    if (currentSong) {
+                        window.currentSongIndex = originalPlaylist.indexOf(currentSong);
+                    }
+                }
+            }
         }
+    }
+    
+    // Visually shuffle playlist items
+    function visuallyShufflePlaylist(shuffledSongs) {
+        console.log('visuallyShufflePlaylist called with:', shuffledSongs.length, 'songs'); // Debug
+        
+        const playlistContainer = document.querySelector('.playlist');
+        const playlist = playlistContainer.querySelector('.playlist');
+        
+        if (!playlist) {
+            console.error('Playlist element not found'); // Debug
+            return;
+        }
+        
+        console.log('Current playlist children before shuffle:', playlist.children.length); // Debug
+        
+        // Create a document fragment to hold reordered items
+        const fragment = document.createDocumentFragment();
+        
+        // Add shuffled items to fragment
+        shuffledSongs.forEach((songItem, index) => {
+            console.log(`Adding song ${index}:`, songItem.querySelector('.song-title')?.textContent); // Debug
+            const clonedItem = songItem.cloneNode(true);
+            fragment.appendChild(clonedItem);
+        });
+        
+        console.log('Fragment children count:', fragment.children.length); // Debug
+        
+        // Clear and re-append
+        playlist.innerHTML = '';
+        playlist.appendChild(fragment);
+        
+        console.log('Playlist children after shuffle:', playlist.children.length); // Debug
+        
+        // Re-attach event listeners to new elements
+        reattachPlaylistEventListeners();
+        
+        // Update songItems reference
+        window.songItems = document.querySelectorAll('.song-item');
+        console.log('Updated songItems count:', window.songItems.length); // Debug
+    }
+    
+    // Visually restore playlist order
+    function visuallyRestorePlaylist() {
+        const playlistContainer = document.querySelector('.playlist');
+        const playlist = playlistContainer.querySelector('.playlist');
+        
+        // Create a document fragment to hold reordered items
+        const fragment = document.createDocumentFragment();
+        
+        // Add original items to fragment
+        originalPlaylist.forEach(songItem => {
+            const clonedItem = songItem.cloneNode(true);
+            fragment.appendChild(clonedItem);
+        });
+        
+        // Clear and re-append
+        playlist.innerHTML = '';
+        playlist.appendChild(fragment);
+        
+        // Re-attach event listeners to new elements
+        reattachPlaylistEventListeners();
+        
+        // Update songItems reference
+        window.songItems = document.querySelectorAll('.song-item');
+    }
+    
+    // Visually shuffle album songs
+    function visuallyShuffleAlbumSongs(shuffledSongs) {
+        const allAlbumContainers = document.querySelectorAll('.album-item');
+        
+        allAlbumContainers.forEach(albumContainer => {
+            const songsList = albumContainer.querySelector('.songs-list');
+            const albumName = albumContainer.querySelector('h4').textContent.trim();
+            
+            if (window.currentAlbumName === albumName) {
+                // Create a document fragment to hold reordered items
+                const fragment = document.createDocumentFragment();
+                
+                // Add shuffled items to fragment
+                shuffledSongs.forEach(songData => {
+                    const songItem = songsList.querySelector(`[data-audio*="${songData.file_path}"]`);
+                    if (songItem) {
+                        const clonedItem = songItem.cloneNode(true);
+                        fragment.appendChild(clonedItem);
+                    }
+                });
+                
+                // Clear and re-append
+                songsList.innerHTML = '';
+                songsList.appendChild(fragment);
+                
+                // Re-attach event listeners to new elements
+                reattachAlbumSongEventListeners();
+            }
+        });
+    }
+    
+    // Visually restore album songs
+    function visuallyRestoreAlbumSongs() {
+        const albumContainer = document.querySelector('.album-item');
+        const songsList = albumContainer.querySelector('.songs-list');
+        const albumName = window.currentAlbumName;
+        
+        if (albumName) {
+            // Re-fetch album songs in original order
+            fetch('includes/get-album-songs.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ album: albumName })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.songs.length > 0) {
+                    const fragment = document.createDocumentFragment();
+                    
+                    data.songs.forEach(songData => {
+                        const songItem = createAlbumSongItem(songData);
+                        fragment.appendChild(songItem);
+                    });
+                    
+                    songsList.innerHTML = '';
+                    songsList.appendChild(fragment);
+                    
+                    // Re-attach event listeners
+                    reattachAlbumSongEventListeners();
+                }
+            })
+            .catch(error => {
+                console.error('Error restoring album songs:', error);
+            });
+        }
+    }
+    
+    // Re-attach playlist event listeners
+    function reattachPlaylistEventListeners() {
+        const playlistSongItems = document.querySelectorAll('.song-item');
+        
+        playlistSongItems.forEach((item, index) => {
+            item.addEventListener('click', function(e) {
+                if (e.target.closest('.song-actions')) return;
+                
+                // Get song data from attributes
+                const audioSrc = item.dataset.audio;
+                const title = item.querySelector('.song-title').textContent;
+                const artist = item.querySelector('.song-artist').textContent;
+                const album = item.querySelector('.song-album')?.textContent || '';
+                const songIndex = parseInt(item.dataset.index);
+                
+                // Create song object for album context
+                const songData = {
+                    file_path: audioSrc,
+                    title: title,
+                    artist: artist,
+                    album: album
+                };
+                
+                // Set current album context
+                window.currentAlbumSongs = Array.from(playlistSongItems).map(songItem => ({
+                    file_path: songItem.dataset.audio,
+                    title: songItem.querySelector('.song-title').textContent,
+                    artist: songItem.querySelector('.song-artist').textContent,
+                    album: songItem.querySelector('.song-album')?.textContent || ''
+                }));
+                window.currentAlbumName = album;
+                window.currentSongIndex = songIndex;
+                
+                // Load and play selected song
+                loadAlbumSongFromData(songData);
+                togglePlayPause();
+                
+                // Update active state immediately
+                updateAlbumSongStates();
+            });
+        });
+    }
+    
+    // Re-attach album song event listeners
+    function reattachAlbumSongEventListeners() {
+        const albumSongItems = document.querySelectorAll('.album-song-item');
+        
+        albumSongItems.forEach((item, index) => {
+            item.addEventListener('click', function(e) {
+                if (e.target.closest('.song-actions')) return;
+                
+                // Get song data from attributes
+                const audioSrc = item.dataset.audio;
+                const title = item.dataset.title;
+                const artist = item.dataset.artist;
+                const album = item.dataset.album;
+                const songIndex = parseInt(item.dataset.index);
+                
+                // Create song object for album context
+                const songData = {
+                    file_path: audioSrc,
+                    title: title,
+                    artist: artist,
+                    album: album
+                };
+                
+                // Set current album context
+                window.currentAlbumSongs = Array.from(albumSongItems).map(songItem => ({
+                    file_path: songItem.dataset.audio,
+                    title: songItem.dataset.title,
+                    artist: songItem.dataset.artist,
+                    album: songItem.dataset.album
+                }));
+                window.currentAlbumName = album;
+                window.currentSongIndex = songIndex;
+                
+                // Load and play selected song
+                loadAlbumSongFromData(songData);
+                togglePlayPause();
+                
+                // Update active state immediately
+                updateAlbumSongStates();
+            });
+        });
     }
     
     // Toggle repeat
@@ -1298,7 +1597,7 @@ function initEnhancedAudioPlayer() {
     if (prevBtn) {
         prevBtn.addEventListener('click', function() {
             if (window.currentAlbumSongs) {
-                // Navigate within album (API-loaded songs)
+                // Navigate within album (shuffled or original)
                 window.currentSongIndex = (window.currentSongIndex - 1 + window.currentAlbumSongs.length) % window.currentAlbumSongs.length;
                 const songData = window.currentAlbumSongs[window.currentSongIndex];
                 const formattedSong = {
@@ -1310,7 +1609,7 @@ function initEnhancedAudioPlayer() {
                 loadAlbumSongFromData(formattedSong);
                 if (window.isPlaying) audioPlayer.play();
             } else {
-                // Navigate within playlist
+                // Navigate within playlist (shuffled or original)
                 const songs = window.isShuffled ? shuffledPlaylist : originalPlaylist;
                 window.currentSongIndex = (window.currentSongIndex - 1 + songs.length) % songs.length;
                 loadSong(window.currentSongIndex);
@@ -1322,7 +1621,7 @@ function initEnhancedAudioPlayer() {
     if (nextBtn) {
         nextBtn.addEventListener('click', function() {
             if (window.currentAlbumSongs) {
-                // Navigate within album (API-loaded songs)
+                // Navigate within album (shuffled or original)
                 window.currentSongIndex = (window.currentSongIndex + 1) % window.currentAlbumSongs.length;
                 const songData = window.currentAlbumSongs[window.currentSongIndex];
                 const formattedSong = {
@@ -1334,7 +1633,7 @@ function initEnhancedAudioPlayer() {
                 loadAlbumSongFromData(formattedSong);
                 if (window.isPlaying) audioPlayer.play();
             } else {
-                // Navigate within playlist
+                // Navigate within playlist (shuffled or original)
                 const songs = window.isShuffled ? shuffledPlaylist : originalPlaylist;
                 window.currentSongIndex = (window.currentSongIndex + 1) % songs.length;
                 loadSong(window.currentSongIndex);
@@ -1345,11 +1644,97 @@ function initEnhancedAudioPlayer() {
     
     // Play all button
     if (playAllBtn) {
+        console.log('Play All button found:', playAllBtn); // Debug
         playAllBtn.addEventListener('click', function() {
-            currentSongIndex = 0;
-            loadSong(currentSongIndex);
-            togglePlayPause();
+            console.log('Play All button clicked'); // Debug
+            playAllSongs();
         });
+    } else {
+        console.log('Play All button not found!'); // Debug
+    }
+    
+    // Play all songs sequentially
+    function playAllSongs() {
+        console.log('Play All button clicked'); // Debug
+        
+        // Check if songItems is available
+        if (!window.songItems) {
+            window.songItems = document.querySelectorAll('.song-item');
+            console.log('songItems defined:', window.songItems.length, 'items'); // Debug
+        }
+        
+        // Get all songs from current context
+        let allSongs = [];
+        let songContext = 'playlist';
+        
+        if (window.currentAlbumSongs && window.currentAlbumSongs.length > 0) {
+            // Use album songs if available
+            allSongs = window.currentAlbumSongs.map(songData => ({
+                file_path: songData.file_path,
+                title: songData.title,
+                artist: songData.artist,
+                album: window.currentAlbumName
+            }));
+            songContext = 'album';
+            console.log('Using album songs:', allSongs.length); // Debug
+        } else {
+            // Use playlist songs
+            allSongs = Array.from(window.songItems).map(songItem => ({
+                file_path: songItem.dataset.audio,
+                title: songItem.querySelector('.song-title').textContent,
+                artist: songItem.querySelector('.song-artist').textContent,
+                album: songItem.querySelector('.song-album')?.textContent || ''
+            }));
+            songContext = 'playlist';
+            console.log('Using playlist songs:', allSongs.length); // Debug
+        }
+        
+        if (allSongs.length === 0) {
+            showToast('No songs available to play', 'error');
+            return;
+        }
+        
+        console.log('All songs collected:', allSongs.length); // Debug
+        
+        // Set current context
+        if (songContext === 'album') {
+            window.currentAlbumSongs = allSongs;
+            window.currentAlbumName = allSongs[0].album;
+        } else {
+            window.currentAlbumSongs = null;
+            window.currentAlbumName = null;
+            shuffledPlaylist = [...allSongs];
+            originalPlaylist = [...allSongs];
+        }
+        
+        // Start playing from first song
+        window.currentSongIndex = 0;
+        window.isShuffled = false;
+        shuffleBtn.classList.remove('shuffle-active');
+        
+        console.log('Starting playback from index 0'); // Debug
+        
+        // Load and play first song
+        if (songContext === 'album') {
+            const songData = allSongs[0];
+            const formattedSong = {
+                file_path: songData.file_path,
+                title: songData.title,
+                artist: songData.artist,
+                album: songData.album
+            };
+            loadAlbumSongFromData(formattedSong);
+        } else {
+            loadSong(0);
+        }
+        
+        // Start playing
+        togglePlayPause();
+        
+        // Show notification
+        showToast(`All ${allSongs.length} songs are playing`, 'success');
+        
+        console.log('Started playing all songs from index 0'); // Debug
     }
     
     // Shuffle all button
@@ -1411,7 +1796,7 @@ function initEnhancedAudioPlayer() {
             audioPlayer.play();
         } else {
             if (window.currentAlbumSongs) {
-                // Navigate within album (API-loaded songs)
+                // Navigate within album (shuffled or original)
                 window.currentSongIndex = (window.currentSongIndex + 1) % window.currentAlbumSongs.length;
                 const songData = window.currentAlbumSongs[window.currentSongIndex];
                 const formattedSong = {
@@ -1423,7 +1808,7 @@ function initEnhancedAudioPlayer() {
                 loadAlbumSongFromData(formattedSong);
                 audioPlayer.play();
             } else {
-                // Navigate within playlist
+                // Navigate within playlist (shuffled or original)
                 const songs = window.isShuffled ? shuffledPlaylist : originalPlaylist;
                 window.currentSongIndex = (window.currentSongIndex + 1) % songs.length;
                 loadSong(window.currentSongIndex);
@@ -1563,18 +1948,286 @@ function downloadSong(filePath) {
     window.open(filePath, '_blank');
 }
 
-function shareSong(songTitle) {
-    if (navigator.share) {
-        navigator.share({
-            title: songTitle,
-            text: `Check out ${songTitle} by ${APP_NAME}`,
-            url: window.location.href
-        });
-    } else {
-        // Fallback: copy to clipboard
-        navigator.clipboard.writeText(window.location.href);
-        showToast('Link copied to clipboard!', 'success');
+function shareSong(songTitle, event) {
+    console.log('Share button clicked for:', songTitle); // Debug
+    
+    // Prevent music playback when clicking share
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
     }
+    
+    // Show social media share modal
+    showShareModal(songTitle);
+}
+
+function showShareModal(songTitle) {
+    console.log('showShareModal called with:', songTitle); // Debug
+    
+    // Remove existing modal if any
+    const existingModal = document.querySelector('.share-modal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Create modal overlay
+    const modalOverlay = document.createElement('div');
+    modalOverlay.className = 'share-modal-overlay';
+    modalOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    `;
+    
+    // Create modal content
+    const modalContent = document.createElement('div');
+    modalContent.className = 'share-modal-content';
+    modalContent.style.cssText = `
+        background: var(--dark-secondary);
+        border-radius: 15px;
+        padding: 2rem;
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+        transform: scale(0.9);
+        transition: transform 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    `;
+    
+    // Modal header
+    const modalHeader = document.createElement('div');
+    modalHeader.innerHTML = `
+        <h3 style="color: var(--text-primary); margin-bottom: 1rem;">Share Song</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Share "${songTitle}" on social media</p>
+    `;
+    
+    // Social media buttons
+    const socialButtons = document.createElement('div');
+    socialButtons.style.cssText = `
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    `;
+    
+    // Share URL
+    const shareUrl = window.location.href;
+    const shareText = `Check out ${songTitle} by ${typeof APP_NAME !== 'undefined' ? APP_NAME : 'Music Player'}`;
+    
+    // Facebook button
+    const facebookBtn = document.createElement('button');
+    facebookBtn.innerHTML = '<i class="fab fa-facebook-f"></i>';
+    facebookBtn.style.cssText = `
+        background: #1877F2;
+        color: white;
+        border: none;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+    facebookBtn.onclick = () => {
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`, '_blank');
+        closeModal();
+    };
+    facebookBtn.onmouseover = () => facebookBtn.style.transform = 'scale(1.1)';
+    facebookBtn.onmouseout = () => facebookBtn.style.transform = 'scale(1)';
+    
+    // WhatsApp button
+    const whatsappBtn = document.createElement('button');
+    whatsappBtn.innerHTML = '<i class="fab fa-whatsapp"></i>';
+    whatsappBtn.style.cssText = `
+        background: #25D366;
+        color: white;
+        border: none;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+    whatsappBtn.onclick = () => {
+        window.open(`https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`, '_blank');
+        closeModal();
+    };
+    whatsappBtn.onmouseover = () => whatsappBtn.style.transform = 'scale(1.1)';
+    whatsappBtn.onmouseout = () => whatsappBtn.style.transform = 'scale(1)';
+    
+    // Messenger button
+    const messengerBtn = document.createElement('button');
+    messengerBtn.innerHTML = '<i class="fab fa-facebook-messenger"></i>';
+    messengerBtn.style.cssText = `
+        background: #0084FF;
+        color: white;
+        border: none;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+    messengerBtn.onclick = () => {
+        window.open(`https://www.facebook.com/dialog/send?link=${encodeURIComponent(shareUrl)}&app_id=YOUR_APP_ID`, '_blank');
+        closeModal();
+    };
+    messengerBtn.onmouseover = () => messengerBtn.style.transform = 'scale(1.1)';
+    messengerBtn.onmouseout = () => messengerBtn.style.transform = 'scale(1)';
+    
+    // Copy link button
+    const copyBtn = document.createElement('button');
+    copyBtn.innerHTML = '<i class="fas fa-link"></i>';
+    copyBtn.style.cssText = `
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+    copyBtn.onclick = () => {
+        copyToClipboard(shareUrl);
+        closeModal();
+    };
+    copyBtn.onmouseover = () => copyBtn.style.transform = 'scale(1.1)';
+    copyBtn.onmouseout = () => copyBtn.style.transform = 'scale(1)';
+    
+    // Close button
+    const closeBtn = document.createElement('button');
+    closeBtn.innerHTML = 'Close';
+    closeBtn.style.cssText = `
+        background: transparent;
+        color: var(--text-secondary);
+        border: 1px solid var(--border-color);
+        padding: 0.5rem 1.5rem;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    `;
+    closeBtn.onclick = closeModal;
+    closeBtn.onmouseover = () => {
+        closeBtn.style.background = 'var(--dark-tertiary)';
+        closeBtn.style.color = 'var(--text-primary)';
+    };
+    closeBtn.onmouseout = () => {
+        closeBtn.style.background = 'transparent';
+        closeBtn.style.color = 'var(--text-secondary)';
+    };
+    
+    // Assemble modal
+    socialButtons.appendChild(facebookBtn);
+    socialButtons.appendChild(whatsappBtn);
+    socialButtons.appendChild(messengerBtn);
+    socialButtons.appendChild(copyBtn);
+    
+    modalContent.appendChild(modalHeader);
+    modalContent.appendChild(socialButtons);
+    modalContent.appendChild(closeBtn);
+    
+    modalOverlay.appendChild(modalContent);
+    document.body.appendChild(modalOverlay);
+    
+    // Close modal function
+    function closeModal() {
+        modalOverlay.style.opacity = '0';
+        modalContent.style.transform = 'scale(0.9)';
+        setTimeout(() => {
+            if (modalOverlay.parentNode) {
+                modalOverlay.parentNode.removeChild(modalOverlay);
+            }
+        }, 300);
+    }
+    
+    // Close on overlay click
+    modalOverlay.onclick = (e) => {
+        if (e.target === modalOverlay) {
+            closeModal();
+        }
+    };
+    
+    // Animate in
+    setTimeout(() => {
+        modalOverlay.style.opacity = '1';
+        modalContent.style.transform = 'scale(1)';
+    }, 100);
+    
+    // Close on Escape key
+    const handleEscape = (e) => {
+        if (e.key === 'Escape') {
+            closeModal();
+            document.removeEventListener('keydown', handleEscape);
+        }
+    };
+    document.addEventListener('keydown', handleEscape);
+}
+
+function copyToClipboard(text) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text)
+            .then(() => {
+                showToast('Link copied to clipboard!', 'success');
+            })
+            .catch((error) => {
+                console.error('Clipboard copy failed:', error);
+                fallbackCopyToClipboard(text);
+            });
+    } else {
+        fallbackCopyToClipboard(text);
+    }
+}
+
+function fallbackCopyToClipboard(text) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+            showToast('Link copied to clipboard!', 'success');
+        } else {
+            showToast('Failed to copy link', 'error');
+        }
+    } catch (err) {
+        console.error('Fallback copy failed:', err);
+        showToast('Failed to copy link', 'error');
+    }
+    
+    document.body.removeChild(textArea);
 }
 
 function addToFavorites(songId) {
@@ -1589,15 +2242,92 @@ function addToFavorites(songId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showToast('Added to favorites!', 'success');
-            // Update heart icon
-            event.target.classList.remove('far');
-            event.target.classList.add('fas');
+            // Update heart icon based on action
+            const heartIcon = event.target;
+            if (data.action === 'added') {
+                heartIcon.classList.remove('far');
+                heartIcon.classList.add('fas');
+                heartIcon.style.color = '#FF6B6B';
+                showToast('Added to favorites!', 'success');
+            } else {
+                heartIcon.classList.remove('fas');
+                heartIcon.classList.add('far');
+                heartIcon.style.color = '';
+                showToast('Removed from favorites', 'info');
+            }
+        } else {
+            showToast(data.error || 'Failed to update favorites', 'error');
         }
     })
     .catch(error => {
-        showToast('Failed to add to favorites', 'error');
+        console.error('Favorites error:', error);
+        showToast('Failed to update favorites', 'error');
     });
+}
+
+// Toast notification function
+function showToast(message, type = 'info') {
+    // Remove existing toast if any
+    const existingToast = document.querySelector('.toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    
+    // Add toast styles
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        z-index: 10000;
+        opacity: 0;
+        transform: translateX(100%);
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    `;
+    
+    // Set background color based on type
+    switch (type) {
+        case 'success':
+            toast.style.background = '#4CAF50';
+            break;
+        case 'error':
+            toast.style.background = '#F44336';
+            break;
+        case 'info':
+            toast.style.background = '#2196F3';
+            break;
+        default:
+            toast.style.background = '#666';
+    }
+    
+    // Add to body
+    document.body.appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    }, 3000);
 }
 
 // Play album functionality

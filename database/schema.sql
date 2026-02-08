@@ -35,7 +35,7 @@ CREATE TABLE videos (
     description TEXT,
     video_url VARCHAR(500) NOT NULL,
     thumbnail VARCHAR(255),
-    video_type ENUM('youtube', 'vimeo') DEFAULT 'youtube',
+    video_type ENUM('youtube', 'vimeo', 'uploaded') DEFAULT 'youtube',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     is_active BOOLEAN DEFAULT TRUE
 );

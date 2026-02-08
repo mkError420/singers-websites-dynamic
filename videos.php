@@ -37,6 +37,7 @@ foreach ($all_videos as $video) {
                 <button class="filter-btn active" data-filter="all">All</button>
                 <button class="filter-btn" data-filter="youtube">YouTube</button>
                 <button class="filter-btn" data-filter="vimeo">Vimeo</button>
+                <button class="filter-btn" data-filter="uploaded">Uploaded</button>
             </div>
         </div>
         
@@ -44,7 +45,7 @@ foreach ($all_videos as $video) {
         <div class="video-grid">
             <?php if (!empty($all_videos)): ?>
                 <?php foreach ($all_videos as $video): ?>
-                    <div class="video-item">
+                    <div class="video-item" data-category="<?php echo $video['video_type']; ?>">
                         <div class="video-thumbnail-container">
                             <img src="<?php echo APP_URL . '/' . ($video['thumbnail'] ?: 'assets/images/default-video.jpg'); ?>" 
                                  alt="<?php echo xss_clean($video['title']); ?>" 
@@ -82,7 +83,7 @@ foreach ($all_videos as $video) {
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     initVideoFilters();
-    initVideoModal();
+    initSimpleVideoClick();
 });
 
 function showToast(message, type = 'success') {
@@ -165,6 +166,185 @@ function addToWatchLater(videoId) {
         showToast('Failed to add to Watch Later', 'error');
     });
 }
+
+function initVideoFilters() {
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const videoItems = document.querySelectorAll('.video-item');
+    
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Update active state
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            
+            const filter = this.dataset.filter;
+            
+            // Filter videos
+            videoItems.forEach(item => {
+                if (filter === 'all' || item.dataset.category === filter) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    });
+}
+
+function initSimpleVideoClick() {
+    const videoThumbnails = document.querySelectorAll('.video-thumbnail');
+    const videoModal = document.getElementById('videoModal');
+    const modalVideo = document.getElementById('modalVideo');
+    const closeModal = document.querySelector('.close-modal');
+    
+    console.log('Found video thumbnails:', videoThumbnails.length);
+    
+    videoThumbnails.forEach(thumbnail => {
+        thumbnail.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const videoUrl = this.dataset.videoUrl;
+            const videoItem = this.closest('.video-item');
+            const videoTitle = videoItem.querySelector('.video-title').textContent;
+            const videoDescription = videoItem.querySelector('.video-description').textContent;
+            
+            console.log('Opening video in modal:', videoUrl);
+            
+            // Convert YouTube URL to embed format
+            let embedUrl = videoUrl;
+            console.log('Original URL:', videoUrl);
+            
+            try {
+                console.log('Converting video URL:', videoUrl);
+                
+                // Handle different video URL formats
+                let embedUrl = '';
+                let videoId = '';
+                
+                if (videoUrl.includes('m.youtube.com/watch?v=')) {
+                    // Mobile YouTube URL: https://m.youtube.com/watch?v=VIDEO_ID
+                    videoId = videoUrl.split('v=')[1]?.split('&')[0];
+                    if (videoId) {
+                        embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
+                    }
+                } else if (videoUrl.includes('youtube.com/watch?v=')) {
+                    // Standard YouTube URL: https://www.youtube.com/watch?v=VIDEO_ID
+                    videoId = videoUrl.split('v=')[1]?.split('&')[0];
+                    if (videoId) {
+                        embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
+                    }
+                } else if (videoUrl.includes('youtu.be/')) {
+                    // Short YouTube URL: https://youtu.be/VIDEO_ID
+                    videoId = videoUrl.split('youtu.be/')[1]?.split('?')[0];
+                    if (videoId) {
+                        embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
+                    }
+                } else if (videoUrl.includes('youtube.com/embed/')) {
+                    // Already embed format, just add parameters
+                    const baseUrl = videoUrl.split('?')[0];
+                    embedUrl = `${baseUrl}?autoplay=1&rel=0`;
+                } else if (videoUrl.includes('vimeo.com/')) {
+                    // Vimeo URL: https://vimeo.com/VIDEO_ID
+                    videoId = videoUrl.split('vimeo.com/')[1]?.split('?')[0];
+                    if (videoId) {
+                        embedUrl = `https://player.vimeo.com/video/${videoId}?autoplay=1`;
+                    }
+                } else if (videoUrl.includes('uploads/videos/')) {
+                    // Uploaded video file
+                    embedUrl = videoUrl;
+                    console.log('Using uploaded video file:', embedUrl);
+                } else {
+                    // Non-YouTube/Vimeo URL, try to detect other video platforms
+                    console.log('Non-YouTube/Vimeo URL, attempting to use as-is:', videoUrl);
+                    embedUrl = videoUrl;
+                }
+                
+                if (!embedUrl) {
+                    throw new Error('Invalid video URL format');
+                }
+                
+                console.log('Final embed URL:', embedUrl);
+                
+                // Set video info and open modal
+                document.getElementById('modalVideoTitle').textContent = videoTitle;
+                document.getElementById('modalVideoDescription').textContent = videoDescription;
+                
+                // Check if it's an uploaded video file
+                if (embedUrl.includes('uploads/videos/')) {
+                    // Create HTML5 video element for uploaded files
+                    const videoContainer = document.querySelector('.video-container');
+                    videoContainer.innerHTML = `
+                        <video controls autoplay style="width: 100%; height: 100%;">
+                            <source src="${embedUrl}" type="video/mp4">
+                            <source src="${embedUrl}" type="video/webm">
+                            <source src="${embedUrl}" type="video/ogg">
+                            Your browser does not support the video tag.
+                        </video>
+                    `;
+                } else {
+                    // Use iframe for YouTube/Vimeo videos
+                    const videoContainer = document.querySelector('.video-container');
+                    videoContainer.innerHTML = `
+                        <iframe id="modalVideo" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    `;
+                    
+                    // Load video with proper event listeners
+                    const modalVideo = document.getElementById('modalVideo');
+                    modalVideo.addEventListener('load', function() {
+                        console.log('Video loaded successfully');
+                    });
+                    
+                    modalVideo.addEventListener('error', function() {
+                        console.error('Video failed to load:', embedUrl);
+                        showToast('Failed to load video. Please try again.', 'error');
+                        closeVideoModal();
+                    });
+                    
+                    // Set the src
+                    modalVideo.src = embedUrl;
+                }
+                
+                videoModal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+                
+            } catch (error) {
+                console.error('Error converting video URL:', error);
+                showToast('Invalid video URL format', 'error');
+                closeVideoModal();
+            }
+        });
+    });
+    
+    // Close modal events
+    if (closeModal) {
+        closeModal.addEventListener('click', closeVideoModal);
+    }
+    
+    videoModal.addEventListener('click', function(e) {
+        if (e.target === videoModal) {
+            closeVideoModal();
+        }
+    });
+    
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && videoModal.style.display === 'flex') {
+            closeVideoModal();
+        }
+    });
+}
+
+function closeVideoModal() {
+    const videoModal = document.getElementById('videoModal');
+    const modalVideo = document.getElementById('modalVideo');
+    
+    if (modalVideo) {
+        modalVideo.src = '';
+    }
+    videoModal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
 </script>
 
 <style>
@@ -466,42 +646,103 @@ function initSimpleVideoClick() {
             console.log('Original URL:', videoUrl);
             
             try {
+                console.log('Converting video URL:', videoUrl);
+                
+                // Handle different video URL formats
+                let embedUrl = '';
+                let videoId = '';
+                
                 if (videoUrl.includes('m.youtube.com/watch?v=')) {
                     // Mobile YouTube URL: https://m.youtube.com/watch?v=VIDEO_ID
-                    const videoId = videoUrl.split('v=')[1]?.split('&')[0];
-                    embedUrl = `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1`;
-                    console.log('Mobile YouTube converted:', embedUrl);
+                    videoId = videoUrl.split('v=')[1]?.split('&')[0];
+                    if (videoId) {
+                        embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
+                    }
                 } else if (videoUrl.includes('youtube.com/watch?v=')) {
                     // Standard YouTube URL: https://www.youtube.com/watch?v=VIDEO_ID
-                    const videoId = videoUrl.split('v=')[1]?.split('&')[0];
-                    embedUrl = `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1`;
-                    console.log('Standard YouTube converted:', embedUrl);
+                    videoId = videoUrl.split('v=')[1]?.split('&')[0];
+                    if (videoId) {
+                        embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
+                    }
                 } else if (videoUrl.includes('youtu.be/')) {
                     // Short YouTube URL: https://youtu.be/VIDEO_ID
-                    const videoId = videoUrl.split('youtu.be/')[1]?.split('?')[0];
-                    embedUrl = `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1`;
-                    console.log('Short YouTube converted:', embedUrl);
+                    videoId = videoUrl.split('youtu.be/')[1]?.split('?')[0];
+                    if (videoId) {
+                        embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
+                    }
                 } else if (videoUrl.includes('youtube.com/embed/')) {
                     // Already embed format, just add parameters
                     const baseUrl = videoUrl.split('?')[0];
-                    embedUrl = `${baseUrl}?rel=0&modestbranding=1&autoplay=1`;
-                    console.log('Already embed format:', embedUrl);
+                    embedUrl = `${baseUrl}?autoplay=1&rel=0`;
+                } else if (videoUrl.includes('vimeo.com/')) {
+                    // Vimeo URL: https://vimeo.com/VIDEO_ID
+                    videoId = videoUrl.split('vimeo.com/')[1]?.split('?')[0];
+                    if (videoId) {
+                        embedUrl = `https://player.vimeo.com/video/${videoId}?autoplay=1`;
+                    }
+                } else if (videoUrl.includes('uploads/videos/')) {
+                    // Uploaded video file
+                    embedUrl = videoUrl;
+                    console.log('Using uploaded video file:', embedUrl);
                 } else {
-                    console.log('Non-YouTube URL, using as-is:', videoUrl);
+                    // Non-YouTube/Vimeo URL, try to detect other video platforms
+                    console.log('Non-YouTube/Vimeo URL, attempting to use as-is:', videoUrl);
+                    embedUrl = videoUrl;
                 }
+                
+                if (!embedUrl) {
+                    throw new Error('Invalid video URL format');
+                }
+                
+                console.log('Final embed URL:', embedUrl);
+                
+                // Set video info and open modal
+                document.getElementById('modalVideoTitle').textContent = videoTitle;
+                document.getElementById('modalVideoDescription').textContent = videoDescription;
+                
+                // Check if it's an uploaded video file
+                if (embedUrl.includes('uploads/videos/')) {
+                    // Create HTML5 video element for uploaded files
+                    const videoContainer = document.querySelector('.video-container');
+                    videoContainer.innerHTML = `
+                        <video controls autoplay style="width: 100%; height: 100%;">
+                            <source src="${embedUrl}" type="video/mp4">
+                            <source src="${embedUrl}" type="video/webm">
+                            <source src="${embedUrl}" type="video/ogg">
+                            Your browser does not support the video tag.
+                        </video>
+                    `;
+                } else {
+                    // Use iframe for YouTube/Vimeo videos
+                    const videoContainer = document.querySelector('.video-container');
+                    videoContainer.innerHTML = `
+                        <iframe id="modalVideo" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    `;
+                    
+                    // Load video with proper event listeners
+                    const modalVideo = document.getElementById('modalVideo');
+                    modalVideo.addEventListener('load', function() {
+                        console.log('Video loaded successfully');
+                    });
+                    
+                    modalVideo.addEventListener('error', function() {
+                        console.error('Video failed to load:', embedUrl);
+                        showToast('Failed to load video. Please try again.', 'error');
+                        closeVideoModal();
+                    });
+                    
+                    // Set the src
+                    modalVideo.src = embedUrl;
+                }
+                
+                videoModal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+                
             } catch (error) {
-                console.error('Error converting URL:', error);
-                embedUrl = videoUrl;
+                console.error('Error converting video URL:', error);
+                showToast('Invalid video URL format', 'error');
+                closeVideoModal();
             }
-            
-            console.log('Embed URL:', embedUrl);
-            
-            // Set video info and open modal
-            document.getElementById('modalVideoTitle').textContent = videoTitle;
-            document.getElementById('modalVideoDescription').textContent = videoDescription;
-            modalVideo.src = embedUrl;
-            videoModal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
         });
     });
     

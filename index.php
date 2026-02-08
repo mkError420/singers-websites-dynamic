@@ -29,7 +29,7 @@ $latestVideos = get_videos(2);
             <p>Experience the newest sounds and melodies</p>
         </div>
         
-        <div class="music-player">
+        <div class="enhanced-music-player">
             <div class="player-header">
                 <div class="now-playing">
                     <h4>Now Playing</h4>
@@ -39,23 +39,31 @@ $latestVideos = get_videos(2);
                     </div>
                 </div>
                 <div class="player-controls">
-                    <button id="prevBtn" class="control-btn"><i class="fas fa-step-backward"></i></button>
-                    <button id="playPauseBtn" class="control-btn play-pause"><i class="fas fa-play"></i></button>
-                    <button id="nextBtn" class="control-btn"><i class="fas fa-step-forward"></i></button>
+                    <button id="prevBtn" class="control-btn" title="Previous"><i class="fas fa-step-backward"></i></button>
+                    <button id="playPauseBtn" class="control-btn play-pause" title="Play/Pause"><i class="fas fa-play"></i></button>
+                    <button id="nextBtn" class="control-btn" title="Next"><i class="fas fa-step-forward"></i></button>
                 </div>
             </div>
             
-            <div class="progress-container">
-                <div class="progress-bar" id="progressBar"></div>
+            <div class="progress-section">
+                <div class="progress-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
                 <div class="time-display">
                     <span id="currentTime">0:00</span>
                     <span id="duration">0:00</span>
                 </div>
             </div>
             
-            <div class="volume-control">
-                <i class="fas fa-volume-up"></i>
-                <input type="range" id="volumeSlider" min="0" max="100" value="70">
+            <div class="player-footer">
+                <div class="volume-control">
+                    <i class="fas fa-volume-up"></i>
+                    <input type="range" id="volumeSlider" min="0" max="100" value="70">
+                </div>
+                <div class="player-actions">
+                    <button id="shuffleBtn" class="control-btn" title="Shuffle"><i class="fas fa-random"></i></button>
+                    <button id="repeatBtn" class="control-btn" title="Repeat"><i class="fas fa-redo"></i></button>
+                </div>
             </div>
         </div>
         
@@ -79,13 +87,590 @@ $latestVideos = get_videos(2);
             <?php endif; ?>
         </div>
         
-        <div class="text-center" style="margin-top: 2rem;">
-            <a href="<?php echo APP_URL; ?>/music.php" class="btn btn-primary">View All Music</a>
+        <div class="text-center" style="margin-top: 3rem;">
+            <a href="<?php echo APP_URL; ?>/music.php" class="modern-btn primary-btn">
+                <span class="btn-content">
+                    <i class="fas fa-music"></i>
+                    <span class="btn-text">View All Music</span>
+                    <span class="btn-arrow">
+                        <i class="fas fa-arrow-right"></i>
+                    </span>
+                </span>
+            </a>
         </div>
     </div>
 </section>
 
-<!-- Latest Videos Section -->
+<style>
+/* Enhanced Music Player Styles - Simple & Small */
+.enhanced-music-player {
+    background: var(--dark-secondary);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.player-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.now-playing h4 {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    margin: 0 0 0.5rem 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.track-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.track-info span {
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.track-info span:first-child {
+    font-size: 1.2rem;
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.player-controls {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.control-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-primary);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+}
+
+.control-btn:hover {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    transform: scale(1.05);
+    box-shadow: 0 3px 10px rgba(255, 107, 107, 0.3);
+    filter: brightness(1.1);
+}
+
+.control-btn.play-pause {
+    width: 50px;
+    height: 50px;
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    font-size: 1.2rem;
+    box-shadow: 0 3px 15px rgba(255, 107, 107, 0.3);
+}
+
+.control-btn.play-pause:hover {
+    background: var(--secondary-color);
+    transform: scale(1.1);
+    box-shadow: 0 5px 20px rgba(255, 107, 107, 0.4);
+    filter: brightness(1.1);
+}
+
+.control-btn.active {
+    background: var(--secondary-color);
+    border-color: var(--secondary-color);
+    color: var(--text-primary);
+}
+
+.control-btn.active:hover {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    transform: scale(1.1);
+    box-shadow: 0 5px 20px rgba(255, 107, 107, 0.4);
+}
+
+.progress-section {
+    margin-bottom: 1.5rem;
+}
+
+.progress-container {
+    background: rgba(255, 255, 255, 0.1);
+    height: 6px;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.progress-container:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: scaleY(1.2);
+}
+
+.progress-bar {
+    height: 4px;
+    background: var(--dark-tertiary);
+    border-radius: 2px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.progress-bar::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: var(--primary-color);
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.1s linear;
+    box-shadow: 0 0 5px rgba(255, 107, 107, 0.3);
+}
+
+.progress-container:hover .progress-bar::before {
+    box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+    filter: brightness(1.2);
+}
+
+.time-display {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.player-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.volume-control {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.volume-control i {
+    color: var(--text-secondary);
+    font-size: 1rem;
+}
+
+.volume-slider {
+    width: 80px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    outline: none;
+    border-radius: 8px;
+    -webkit-appearance: none;
+    appearance: none;
+    transition: all 0.3s ease;
+}
+
+.volume-slider:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: scaleY(1.2);
+}
+
+.volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(255, 107, 107, 0.3);
+    transition: all 0.3s ease;
+}
+
+.volume-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 3px 10px rgba(255, 107, 107, 0.5);
+    filter: brightness(1.2);
+}
+
+.volume-slider::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 6px rgba(255, 107, 107, 0.3);
+    transition: all 0.3s ease;
+}
+
+.volume-slider::-moz-range-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 3px 10px rgba(255, 107, 107, 0.5);
+    filter: brightness(1.2);
+}
+
+.player-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.player-actions .control-btn {
+    width: 35px;
+    height: 35px;
+    font-size: 0.9rem;
+}
+
+/* Simple Playlist Styles */
+.playlist {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    padding: 1rem;
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+.song-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+.song-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    background: linear-gradient(90deg, var(--primary-color), transparent);
+    transition: width 0.3s ease;
+    opacity: 0.3;
+}
+
+.song-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    transform: translateX(5px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.song-item:hover::before {
+    width: 3px;
+}
+
+.song-item:hover .song-cover {
+    transform: scale(1.05);
+    filter: brightness(1.1);
+}
+
+.song-item:hover .song-title {
+    color: var(--primary-color);
+    transform: translateX(2px);
+}
+
+.song-item:hover .song-artist {
+    color: var(--text-primary);
+    transform: translateX(2px);
+}
+
+.song-item:last-child {
+    border-bottom: none;
+}
+
+.song-cover {
+    width: 50px;
+    height: 50px;
+    border-radius: 6px;
+    object-fit: cover;
+    margin-right: 0.75rem;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.song-info {
+    flex: 1;
+}
+
+.song-title {
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    transition: all 0.3s ease;
+}
+    
+.song-artist {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+    transition: all 0.3s ease;
+}
+
+.song-duration {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.2rem 0.4rem;
+    border-radius: 10px;
+    margin-left: auto;
+    transition: all 0.3s ease;
+}
+
+.song-item:hover .song-duration {
+    background: var(--primary-color);
+    color: var(--text-primary);
+    transform: scale(1.05);
+}
+
+.no-content {
+    text-align: center;
+    padding: 2rem 1.5rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.no-content p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .enhanced-music-player {
+        padding: 1rem;
+    }
+    
+    .player-header {
+        flex-direction: column;
+        gap: 0.75rem;
+        text-align: center;
+    }
+    
+    .player-controls {
+        justify-content: center;
+    }
+    
+    .player-footer {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .song-item {
+        padding: 0.5rem;
+    }
+    
+    .song-cover {
+        width: 45px;
+        height: 45px;
+    }
+}
+
+@media (max-width: 480px) {
+    .enhanced-music-player {
+        padding: 0.75rem;
+    }
+    
+    .control-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 0.9rem;
+    }
+    
+    .control-btn.play-pause {
+        width: 45px;
+        height: 45px;
+        font-size: 1.1rem;
+    }
+    
+    .player-actions .control-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 0.8rem;
+    }
+}
+
+/* Modern Button Styles */
+.modern-btn {
+    display: inline-block;
+    position: relative;
+    padding: 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.btn-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, var(--primary-color), #ff6b6b);
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 50px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 20px rgba(255, 107, 107, 0.3);
+}
+
+.btn-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.modern-btn:hover .btn-content {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(255, 107, 107, 0.4);
+    background: linear-gradient(135deg, #ff6b6b, var(--primary-color));
+}
+
+.modern-btn:hover .btn-content::before {
+    left: 100%;
+}
+
+.btn-content i:first-child {
+    font-size: 1.1rem;
+    transition: transform 0.3s ease;
+}
+
+.modern-btn:hover .btn-content i:first-child {
+    transform: rotate(15deg) scale(1.1);
+}
+
+.btn-text {
+    position: relative;
+    z-index: 1;
+    transition: transform 0.3s ease;
+}
+
+.modern-btn:hover .btn-text {
+    transform: translateX(2px);
+}
+
+.btn-arrow {
+    position: relative;
+    z-index: 1;
+    transition: transform 0.3s ease;
+}
+
+.modern-btn:hover .btn-arrow {
+    transform: translateX(3px);
+}
+
+.btn-arrow i {
+    font-size: 0.9rem;
+    transition: transform 0.3s ease;
+}
+
+.modern-btn:hover .btn-arrow i {
+    transform: translateX(2px);
+}
+
+/* Secondary Button Style */
+.modern-btn.secondary-btn .btn-content {
+    background: linear-gradient(135deg, var(--dark-secondary), var(--dark-tertiary));
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+}
+
+.modern-btn.secondary-btn:hover .btn-content {
+    background: linear-gradient(135deg, var(--dark-tertiary), var(--dark-secondary));
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    border-color: var(--primary-color);
+}
+
+/* Button Ripple Effect */
+.modern-btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+    opacity: 0;
+}
+
+.modern-btn:active::after {
+    width: 300px;
+    height: 300px;
+    opacity: 0;
+    transition: 0s;
+}
+
+/* Responsive Button */
+@media (max-width: 768px) {
+    .btn-content {
+        padding: 0.875rem 1.5rem;
+        font-size: 0.95rem;
+    }
+    
+    .btn-content i:first-child {
+        font-size: 1rem;
+    }
+    
+    .btn-arrow i {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .btn-content {
+        padding: 0.75rem 1.25rem;
+        font-size: 0.9rem;
+        gap: 0.5rem;
+    }
+    
+    .btn-content i:first-child {
+        font-size: 0.9rem;
+    }
+    
+    .btn-arrow i {
+        font-size: 0.75rem;
+    }
+}
+</style>
 <section id="videos" class="section" style="background: var(--dark-secondary);">
     <div class="container">
         <div class="section-title">
@@ -114,8 +699,16 @@ $latestVideos = get_videos(2);
             <?php endif; ?>
         </div>
         
-        <div class="text-center" style="margin-top: 2rem;">
-            <a href="<?php echo APP_URL; ?>/videos.php" class="btn btn-primary">View All Videos</a>
+        <div class="text-center" style="margin-top: 3rem;">
+            <a href="<?php echo APP_URL; ?>/videos.php" class="modern-btn secondary-btn">
+                <span class="btn-content">
+                    <i class="fas fa-play"></i>
+                    <span class="btn-text">View All Videos</span>
+                    <span class="btn-arrow">
+                        <i class="fas fa-arrow-right"></i>
+                    </span>
+                </span>
+            </a>
         </div>
     </div>
 </section>

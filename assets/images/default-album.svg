@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300">
+  <rect width="300" height="300" fill="#2a2a2a"/>
+  <rect x="50" y="50" width="200" height="200" fill="#3a3a3a" rx="10"/>
+  <circle cx="150" cy="120" r="40" fill="#4a4a4a"/>
+  <path d="M130 160 Q150 180 170 160 L170 200 Q150 220 130 200 Z" fill="#4a4a4a"/>
+  <text x="150" y="260" text-anchor="middle" fill="#666" font-family="Arial, sans-serif" font-size="14">Album Cover</text>
+</svg>

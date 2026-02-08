@@ -23,10 +23,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     
+    // Handle video file upload
+    $uploaded_video_path = '';
+    if (isset($_FILES['video_file']) && $_FILES['video_file']['error'] === UPLOAD_ERR_OK) {
+        $allowed_video_types = ['mp4', 'webm', 'ogg', 'avi', 'mov', 'wmv', 'flv', 'mkv'];
+        $upload_result = upload_file($_FILES['video_file'], UPLOAD_PATH . 'videos/', $allowed_video_types);
+        if ($upload_result['success']) {
+            $uploaded_video_path = 'uploads/videos/' . $upload_result['filename'];
+            // Generate VIDEO_ID from filename
+            $video_id = 'video_' . time() . '_' . uniqid();
+            $video_url = APP_URL . '/' . $uploaded_video_path;
+            $video_type = 'uploaded';
+        }
+    }
+    
     // Validate required fields
-    if (empty($title) || empty($video_url)) {
-        $error = 'Title and video URL are required.';
+    if (empty($title)) {
+        $error = 'Title is required.';
+    } elseif (empty($video_url) && empty($uploaded_video_path)) {
+        $error = 'Either video URL or video file is required.';
     } else {
+        // If video file was uploaded, use its path
+        if (!empty($uploaded_video_path)) {
+            $video_url = APP_URL . '/' . $uploaded_video_path;
+            $video_type = 'uploaded';
+        }
+        
         // Insert into database
         $video_data = [
             'title' => $title,
@@ -325,6 +347,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 
                 <div class="form-group">
+                    <label>Video Source</label>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="video_source" value="url" checked>
+                            Video URL (YouTube/Vimeo)
+                        </label>
+                        <label>
+                            <input type="radio" name="video_source" value="upload">
+                            Upload Video File
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group" id="video_url_group">
                     <label for="video_url">Video URL *</label>
                     <input type="url" id="video_url" name="video_url" class="form-control" 
                            placeholder="https://www.youtube.com/watch?v=..." required>
@@ -332,6 +368,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <strong>YouTube:</strong> https://www.youtube.com/watch?v=VIDEO_ID<br>
                         <strong>Vimeo:</strong> https://vimeo.com/VIDEO_ID
                     </div>
+                </div>
+                
+                <div class="form-group file-upload" id="video_upload_group" style="display: none;">
+                    <label for="video_file">Video File *</label>
+                    <input type="file" id="video_file" name="video_file" accept="video/*">
+                    <label for="video_file" class="file-upload-label">
+                        <i class="fas fa-video"></i>
+                        <span>Choose Video File</span>
+                        <small>MP4, WebM, OGG, AVI, MOV, WMV, FLV, MKV (Max: <?php echo MAX_FILE_SIZE / 1024 / 1024; ?>MB)</small>
+                    </label>
                 </div>
                 
                 <div class="form-group">
@@ -377,4 +423,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </main>
     </div>
 </body>
+
+<script>
+// Handle video source switching
+document.addEventListener('DOMContentLoaded', function() {
+    const videoSourceRadios = document.querySelectorAll('input[name="video_source"]');
+    const videoUrlGroup = document.getElementById('video_url_group');
+    const videoUploadGroup = document.getElementById('video_upload_group');
+    const videoUrlInput = document.getElementById('video_url');
+    const videoFileInput = document.getElementById('video_file');
+    
+    videoSourceRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'url') {
+                videoUrlGroup.style.display = 'block';
+                videoUploadGroup.style.display = 'none';
+                videoUrlInput.required = true;
+                videoFileInput.required = false;
+            } else if (this.value === 'upload') {
+                videoUrlGroup.style.display = 'none';
+                videoUploadGroup.style.display = 'block';
+                videoUrlInput.required = false;
+                videoFileInput.required = true;
+            }
+        });
+    });
+});
+</script>
 </html>
