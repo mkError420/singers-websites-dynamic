@@ -37,20 +37,22 @@ $allSongs = fetchAll($songs_query, [$songs_per_page, $offset]);
                     <h4>Now Playing</h4>
                     <div class="track-info">
                         <span id="currentSongTitle">Select a song</span>
-                        <span id="currentSongArtist"></span>
+                        <span id="currentSongArtist">-</span>
                     </div>
                 </div>
                 <div class="player-controls">
-                    <button id="prevBtn" class="control-btn"><i class="fas fa-step-backward"></i></button>
-                    <button id="playPauseBtn" class="control-btn play-pause"><i class="fas fa-play"></i></button>
-                    <button id="nextBtn" class="control-btn"><i class="fas fa-step-forward"></i></button>
-                    <button id="shuffleBtn" class="control-btn"><i class="fas fa-random"></i></button>
-                    <button id="repeatBtn" class="control-btn"><i class="fas fa-redo"></i></button>
+                    <button id="shuffleBtn" class="control-btn" title="Shuffle"><i class="fas fa-random"></i></button>
+                    <button id="prevBtn" class="control-btn" title="Previous"><i class="fas fa-step-backward"></i></button>
+                    <button id="playPauseBtn" class="control-btn play-pause" title="Play/Pause"><i class="fas fa-play"></i></button>
+                    <button id="nextBtn" class="control-btn" title="Next"><i class="fas fa-step-forward"></i></button>
+                    <button id="repeatBtn" class="control-btn" title="Repeat"><i class="fas fa-redo"></i></button>
                 </div>
             </div>
             
-            <div class="progress-container">
-                <div class="progress-bar" id="progressBar"></div>
+            <div class="progress-section">
+                <div class="progress-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
                 <div class="time-display">
                     <span id="currentTime">0:00</span>
                     <span id="duration">0:00</span>
@@ -62,8 +64,9 @@ $allSongs = fetchAll($songs_query, [$songs_per_page, $offset]);
                     <i class="fas fa-volume-up"></i>
                     <input type="range" id="volumeSlider" min="0" max="100" value="70">
                 </div>
-                <div class="playlist-toggle">
-                    <button id="playlistToggle"><i class="fas fa-list"></i> Playlist</button>
+                <div class="player-actions">
+                    <button id="playAllBtn" class="control-btn" title="Play All"><i class="fas fa-play-circle"></i></button>
+                    <button id="shuffleAllBtn" class="control-btn" title="Shuffle All"><i class="fas fa-random"></i></button>
                 </div>
             </div>
         </div>
@@ -275,13 +278,35 @@ $allSongs = fetchAll($songs_query, [$songs_per_page, $offset]);
 
 <style>
 /* Music Page Specific Styles */
+.music-player {
+    background: linear-gradient(135deg, var(--dark-secondary) 0%, var(--dark-tertiary) 100%);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.music-player::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+    opacity: 0.5;
+}
+
 .player-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .now-playing h4 {
@@ -309,59 +334,91 @@ $allSongs = fetchAll($songs_query, [$songs_per_page, $offset]);
 }
 
 .player-controls {
-display: flex;
-gap: 1rem;
-align-items: center;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
 }
 
 .control-btn {
-background: none;
-border: none;
-color: var(--text-primary);
-font-size: 1.2rem;
-cursor: pointer;
-transition: all 0.3s ease;
-padding: 0.5rem;
-border-radius: 50%;
-width: 40px;
-height: 40px;
-display: flex;
-align-items: center;
-justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0.5rem;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
 }
 
 .control-btn:hover {
-background: var(--dark-tertiary);
-color: var(--primary-color);
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    transform: scale(1.1);
+    box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
 }
 
 .control-btn.shuffle-active {
-color: #FF6B6B !important;
-background: rgba(255, 107, 107, 0.1) !important;
+    color: #FF6B6B !important;
+    background: rgba(255, 107, 107, 0.2) !important;
+    border-color: #FF6B6B !important;
 }
 
 .control-btn.repeat-active {
-color: #FF6B6B !important;
-background: rgba(255, 107, 107, 0.1) !important;
+    color: #FF6B6B !important;
+    background: rgba(255, 107, 107, 0.2) !important;
+    border-color: #FF6B6B !important;
 }
 
 .control-btn.play-pause {
-background: var(--primary-color);
-color: var(--text-primary);
-font-size: 1.5rem;
-width: 50px;
-height: 50px;
+    background: var(--primary-color);
+    color: var(--text-primary);
+    font-size: 1.5rem;
     width: 50px;
     height: 50px;
+    box-shadow: 0 5px 20px rgba(255, 107, 107, 0.4);
 }
 
 .control-btn.play-pause:hover {
     background: var(--secondary-color);
+    transform: scale(1.15);
+    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.5);
+}
+
+.progress-section {
+    margin-bottom: 2rem;
 }
 
 .progress-container {
     position: relative;
     margin-bottom: 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    height: 8px;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+}
+
+.progress-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
 }
 
 .progress-bar {
@@ -378,10 +435,30 @@ height: 50px;
     left: 0;
     top: 0;
     height: 100%;
-    background: var(--primary-color);
+    background: linear-gradient(90deg, var(--primary-color), #ff6b6b);
     border-radius: 2px;
     width: 0%;
     transition: width 0.1s linear;
+    box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+}
+
+.progress-bar::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    background: var(--text-primary);
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.progress-container:hover .progress-bar::after {
+    opacity: 1;
 }
 
 .time-display {
@@ -396,6 +473,7 @@ height: 50px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 2rem;
 }
 
 .volume-control {
@@ -404,22 +482,41 @@ height: 50px;
     gap: 0.5rem;
 }
 
+.volume-control i {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
 .volume-control input[type="range"] {
     width: 100px;
-    height: 4px;
-    background: var(--dark-tertiary);
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
     outline: none;
-    border-radius: 2px;
+    border-radius: 10px;
     -webkit-appearance: none;
+    appearance: none;
+    backdrop-filter: blur(5px);
 }
 
 .volume-control input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 12px;
-    height: 12px;
+    appearance: none;
+    width: 16px;
+    height: 16px;
     background: var(--primary-color);
     border-radius: 50%;
     cursor: pointer;
+    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+}
+
+.volume-control input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
 }
 
 .playlist-toggle button {
