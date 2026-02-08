@@ -3,17 +3,45 @@ require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/includes/database.php';
 require_once __DIR__ . '/includes/functions.php';
 
-// Get all videos
+// Helper function to get category color
+function getCategoryColor($categoryName) {
+    $default_colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dfe6e9', '#fab1a0', '#a29bfe'];
+    $hash = md5($categoryName);
+    $index = hexdec(substr($hash, 0, 8)) % count($default_colors);
+    return $default_colors[$index];
+}
+
+// Get all videos with category information
 $all_videos = get_videos();
 
-// Get video categories for filtering
-$categories = [];
-foreach ($all_videos as $video) {
-    $category = $video['video_type'] ?? 'youtube';
-    if (!in_array($category, $categories)) {
-        $categories[] = $category;
-    }
+// Get video categories from actual videos (text-based)
+$categories = get_video_categories_from_videos();
+
+// Get current category filter
+$current_category_name = isset($_GET['category']) ? sanitize_input($_GET['category']) : null;
+
+// Pagination settings
+$videos_per_page = 9;
+$current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$offset = ($current_page - 1) * $videos_per_page;
+
+// Filter videos by category if selected
+if ($current_category_name) {
+    $all_videos = get_videos_by_category_name($current_category_name, $videos_per_page, $offset);
+    // Get total count for pagination
+    $total_sql = "SELECT COUNT(*) as total FROM videos WHERE category_name = ? AND is_active = 1";
+    $total_result = fetchOne($total_sql, [$current_category_name]);
+    $total_videos = $total_result['total'] ?? 0;
+} else {
+    $all_videos = get_videos($videos_per_page, $offset);
+    // Get total count for pagination
+    $total_sql = "SELECT COUNT(*) as total FROM videos WHERE is_active = 1";
+    $total_result = fetchOne($total_sql);
+    $total_videos = $total_result['total'] ?? 0;
 }
+
+// Calculate pagination
+$total_pages = ceil($total_videos / $videos_per_page);
 ?>
 
 <!-- Hero Section -->
@@ -34,10 +62,14 @@ foreach ($all_videos as $video) {
         <!-- Filter Buttons -->
         <div class="video-filters">
             <div class="filter-buttons">
-                <button class="filter-btn active" data-filter="all">All</button>
-                <button class="filter-btn" data-filter="youtube">YouTube</button>
-                <button class="filter-btn" data-filter="vimeo">Vimeo</button>
-                <button class="filter-btn" data-filter="uploaded">Uploaded</button>
+                <a href="videos.php" class="filter-btn <?php echo !$current_category_name ? 'active' : ''; ?>">All</a>
+                <?php foreach ($categories as $category): ?>
+                    <a href="videos.php?category=<?php echo urlencode($category['name']); ?>" 
+                       class="filter-btn <?php echo $current_category_name == $category['name'] ? 'active' : ''; ?>"
+                       style="background-color: <?php echo $category['color']; ?>20; border-color: <?php echo $category['color']; ?>;">
+                        <?php echo htmlspecialchars($category['name']); ?> (<?php echo $category['count']; ?>)
+                    </a>
+                <?php endforeach; ?>
             </div>
         </div>
         
@@ -63,6 +95,11 @@ foreach ($all_videos as $video) {
                             <h3 class="video-title"><?php echo xss_clean($video['title']); ?></h3>
                             <p class="video-description"><?php echo truncate_text(xss_clean($video['description']), 120); ?></p>
                             <div class="video-meta">
+                                <?php if (!empty($video['category_name'])): ?>
+                                    <span class="video-category-badge" style="background-color: <?php echo getCategoryColor($video['category_name']); ?>;">
+                                        <?php echo htmlspecialchars($video['category_name']); ?>
+                                    </span>
+                                <?php endif; ?>
                                 <span class="video-views">1.2M views</span>
                                 <span class="video-date"><?php echo format_date($video['created_at'], 'M j, Y'); ?></span>
                             </div>
@@ -76,6 +113,29 @@ foreach ($all_videos as $video) {
                 </div>
             <?php endif; ?>
         </div>
+        
+        <!-- Pagination -->
+        <?php if ($total_pages > 1): ?>
+            <div class="pagination">
+                <?php if ($current_page > 1): ?>
+                    <a href="?page=<?php echo $current_page - 1; ?><?php echo $current_category_name ? '&category=' . urlencode($current_category_name) : ''; ?>" class="pagination-btn">
+                        <i class="fas fa-chevron-left"></i>
+                        Previous
+                    </a>
+                <?php endif; ?>
+                
+                <div class="pagination-info">
+                    Page <?php echo $current_page; ?> of <?php echo $total_pages; ?>
+                </div>
+                
+                <?php if ($current_page < $total_pages): ?>
+                    <a href="?page=<?php echo $current_page + 1; ?><?php echo $current_category_name ? '&category=' . urlencode($current_category_name) : ''; ?>" class="pagination-btn">
+                        Next
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
     </div>
 </section>
 
@@ -378,6 +438,18 @@ function closeVideoModal() {
     border-color: var(--primary-color);
 }
 
+.video-category-badge {
+    background: var(--primary-color);
+    color: var(--text-primary);
+    padding: 0.2rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-right: 0.5rem;
+    display: inline-block;
+}
+
 .video-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -570,6 +642,57 @@ function closeVideoModal() {
     
     .modal-actions {
         flex-direction: column;
+    }
+}
+
+/* Pagination Styles */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 3rem;
+    margin-bottom: 2rem;
+}
+
+.pagination-btn {
+    background: var(--dark-tertiary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.pagination-btn:hover {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.pagination-info {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+    background: var(--dark-tertiary);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+@media (max-width: 768px) {
+    .pagination {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .pagination-btn {
+        width: 100%;
+        justify-content: center;
     }
 }
 </style>

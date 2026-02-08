@@ -28,6 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $description = sanitize_input($_POST['description'] ?? '');
     $video_url = sanitize_input($_POST['video_url'] ?? '');
     $video_type = sanitize_input($_POST['video_type'] ?? 'youtube');
+    $category_name = sanitize_input($_POST['category_name'] ?? '');
     $is_active = isset($_POST['is_active']) ? 1 : 0;
     
     // Handle thumbnail upload (only if new file provided)
@@ -50,6 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'description' => $description,
             'video_url' => $video_url,
             'video_type' => $video_type,
+            'category_name' => $category_name,
             'thumbnail' => $thumbnail,
             'is_active' => $is_active
         ];
@@ -374,6 +376,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             Vimeo
                         </label>
                     </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="category_name">Category</label>
+                    <input type="text" id="category_name" name="category_name" class="form-control" 
+                           placeholder="Enter category name (e.g., Music Videos, Live Performance, etc.)"
+                           value="<?php echo isset($_POST['category_name']) ? htmlspecialchars($_POST['category_name']) : ($video['category_name'] ?? ''); ?>">
+                    <small>Enter a custom category name for this video</small>
                 </div>
                 
                 <div class="form-group file-upload">

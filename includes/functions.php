@@ -134,7 +134,7 @@ function get_songs($limit = null, $active_only = true) {
 }
 
 // Get videos from database
-function get_videos($limit = null, $active_only = true) {
+function get_videos($limit = null, $offset = 0, $active_only = true) {
     $sql = "SELECT * FROM videos";
     $params = [];
     
@@ -145,8 +145,9 @@ function get_videos($limit = null, $active_only = true) {
     $sql .= " ORDER BY created_at DESC";
     
     if ($limit) {
-        $sql .= " LIMIT ?";
+        $sql .= " LIMIT ? OFFSET ?";
         $params[] = $limit;
+        $params[] = $offset;
     }
     
     return fetchAll($sql, $params);
@@ -201,5 +202,62 @@ function get_pagination_data($total_items, $items_per_page = 10, $current_page =
         'has_prev' => $current_page > 1,
         'has_next' => $current_page < $total_pages
     ];
+}
+
+// Get video categories from database (text-based)
+function get_video_categories_from_videos($limit = null) {
+    $sql = "SELECT DISTINCT category_name FROM videos WHERE category_name IS NOT NULL AND category_name != '' AND is_active = 1 ORDER BY category_name ASC";
+    $params = [];
+    
+    if ($limit) {
+        $sql .= " LIMIT ?";
+        $params[] = $limit;
+    }
+    
+    $result = fetchAll($sql, $params);
+    
+    // Convert to category objects with default colors
+    $categories = [];
+    $default_colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dfe6e9', '#fab1a0', '#a29bfe'];
+    $color_index = 0;
+    
+    foreach ($result as $row) {
+        $categories[] = [
+            'name' => $row['category_name'],
+            'color' => $default_colors[$color_index % count($default_colors)],
+            'count' => 0 // Will be updated below
+        ];
+        $color_index++;
+    }
+    
+    // Get video counts for each category
+    foreach ($categories as &$category) {
+        $count_sql = "SELECT COUNT(*) as count FROM videos WHERE category_name = ? AND is_active = 1";
+        $count_result = fetchOne($count_sql, [$category['name']]);
+        $category['count'] = $count_result['count'] ?? 0;
+    }
+    
+    return $categories;
+}
+
+// Get videos by category name
+function get_videos_by_category_name($category_name, $limit = null, $offset = 0) {
+    $sql = "SELECT * FROM videos WHERE is_active = 1";
+    $params = [];
+    
+    if ($category_name) {
+        $sql .= " AND category_name = ?";
+        $params[] = $category_name;
+    }
+    
+    $sql .= " ORDER BY created_at DESC";
+    
+    if ($limit) {
+        $sql .= " LIMIT ? OFFSET ?";
+        $params[] = $limit;
+        $params[] = $offset;
+    }
+    
+    return fetchAll($sql, $params);
 }
 ?>
