@@ -50,9 +50,7 @@
         </div>
         
         <div class="footer-bottom">
-            <p>&copy; <span class="current-year"></span> <?php echo APP_NAME; ?>. All rights reserved. | 
-            <a href="privacy-policy.php">Privacy Policy</a> | 
-            <a href="terms-of-service.php">Terms of Service</a></p>
+            <p>&copy; <span class="current-year"></span> <?php echo APP_NAME; ?>. All rights reserved.</p>
         </div>
     </div>
 </footer>

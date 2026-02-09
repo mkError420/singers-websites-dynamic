@@ -252,11 +252,39 @@ require_once __DIR__ . '/includes/functions.php';
         
         <!-- Call to Action -->
         <div class="about-cta">
-            <h3>Join the Journey</h3>
-            <p>Music is better when shared. Subscribe to get updates on new releases, tour dates, and exclusive content.</p>
-            <div class="cta-buttons">
-                <a href="#newsletter" class="btn btn-primary">Subscribe Now</a>
-                <a href="music.php" class="btn secondary">Listen to Music</a>
+            <div class="cta-content">
+                <div class="cta-header">
+                    <h3 class="cta-title">
+                        <span class="title-gradient">Join the Journey</span>
+                        <div class="title-underline"></div>
+                    </h3>
+                    <p class="cta-subtitle">
+                        <span class="subtitle-icon">🎵</span>
+                        Music is better when shared
+                        <span class="subtitle-icon">🌟</span>
+                    </p>
+                </div>
+                <p class="cta-description">Subscribe to get updates on new releases, tour dates, and exclusive content.</p>
+                <div class="cta-buttons">
+                    <a href="#newsletter" class="btn btn-primary">
+                        <span class="btn-content">
+                            <i class="fas fa-envelope"></i>
+                            Subscribe Now
+                        </span>
+                    </a>
+                    <a href="music.php" class="btn btn-secondary">
+                        <span class="btn-content">
+                            <i class="fas fa-music"></i>
+                            Listen to Music
+                        </span>
+                    </a>
+                </div>
+            </div>
+            <div class="cta-decoration">
+                <div class="decoration-circle decoration-1"></div>
+                <div class="decoration-circle decoration-2"></div>
+                <div class="decoration-circle decoration-3"></div>
+                <div class="decoration-circle decoration-4"></div>
             </div>
         </div>
     </div>
@@ -1102,27 +1130,345 @@ require_once __DIR__ . '/includes/functions.php';
 
 .about-cta {
     text-align: center;
-    background: var(--gradient-secondary);
-    padding: 3rem;
-    border-radius: 15px;
+    background: 
+        linear-gradient(145deg, var(--dark-secondary) 0%, var(--dark-tertiary) 100%),
+        radial-gradient(circle at 30% 30%, rgba(255, 107, 107, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 70% 70%, rgba(78, 205, 196, 0.08) 0%, transparent 50%);
+    padding: 4rem 3rem;
+    border-radius: 30px;
     margin-top: 4rem;
+    position: relative;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 
+        0 25px 50px rgba(0, 0, 0, 0.4),
+        0 10px 30px rgba(255, 107, 107, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-.about-cta h3 {
-    color: var(--text-primary);
-    margin-bottom: 1rem;
+.about-cta::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--accent-color), var(--primary-color));
+    background-size: 300% 100%;
+    animation: ctaShimmer 4s linear infinite;
+    z-index: 2;
 }
 
-.about-cta p {
-    color: var(--text-secondary);
+@keyframes ctaShimmer {
+    0% { background-position: -300% 0; }
+    100% { background-position: 300% 0; }
+}
+
+.about-cta::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 20%, rgba(255, 107, 107, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(78, 205, 196, 0.05) 0%, transparent 50%),
+        repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 20px,
+            rgba(255, 255, 255, 0.01) 20px,
+            rgba(255, 255, 255, 0.01) 40px
+        );
+    pointer-events: none;
+    z-index: 0;
+    animation: ctaBackgroundShift 20s ease-in-out infinite;
+}
+
+@keyframes ctaBackgroundShift {
+    0%, 100% { 
+        background-position: 0% 0%, 100% 100%, 0% 0%;
+        opacity: 1;
+    }
+    50% { 
+        background-position: 100% 100%, 0% 0%, 40px 40px;
+        opacity: 0.8;
+    }
+}
+
+.cta-content {
+    position: relative;
+    z-index: 2;
+}
+
+.cta-header {
     margin-bottom: 2rem;
+}
+
+.cta-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    position: relative;
+    display: inline-block;
+}
+
+.cta-title .title-gradient {
+    background: linear-gradient(135deg, #ff6b6b, #4ecdc4, #45b7d1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200% 200%;
+    animation: ctaTitleGradient 4s ease-in-out infinite;
+}
+
+@keyframes ctaTitleGradient {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.cta-title .title-underline {
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 3px;
+    background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1);
+    border-radius: 2px;
+    animation: ctaUnderlineGlow 3s ease-in-out infinite;
+}
+
+@keyframes ctaUnderlineGlow {
+    0%, 100% { 
+        box-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
+        width: 100px;
+    }
+    50% { 
+        box-shadow: 0 0 30px rgba(78, 205, 196, 0.7);
+        width: 150px;
+    }
+}
+
+.cta-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    font-weight: 400;
+    margin-bottom: 0;
+}
+
+.subtitle-icon {
+    font-size: 1.4rem;
+    animation: ctaIconFloat 3s ease-in-out infinite;
+}
+
+.subtitle-icon:first-child {
+    animation-delay: 0s;
+}
+
+.subtitle-icon:last-child {
+    animation-delay: 1.5s;
+}
+
+@keyframes ctaIconFloat {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+}
+
+.cta-description {
+    color: var(--text-secondary);
+    margin-bottom: 2.5rem;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .cta-buttons {
     display: flex;
-    gap: 1rem;
+    gap: 1.5rem;
     justify-content: center;
     flex-wrap: wrap;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 2rem;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    min-width: 180px;
+}
+
+.btn-content {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+    z-index: 2;
+}
+
+.btn i {
+    font-size: 1rem;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: var(--text-primary);
+    border: none;
+    box-shadow: 
+        0 10px 25px rgba(255, 107, 107, 0.4),
+        0 4px 15px rgba(78, 205, 196, 0.2);
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    background-size: 200% 100%;
+    animation: btnPrimaryShimmer 3s linear infinite;
+    border-radius: 25px;
+}
+
+.btn-primary:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 
+        0 15px 35px rgba(255, 107, 107, 0.6),
+        0 6px 20px rgba(78, 205, 196, 0.3);
+}
+
+.btn-primary:hover::before {
+    animation: btnPrimaryShimmer 0.5s linear infinite;
+}
+
+@keyframes btnPrimaryShimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.btn-secondary {
+    background: 
+        linear-gradient(145deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%),
+        radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+    color: var(--text-primary);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 
+        0 8px 20px rgba(0, 0, 0, 0.3),
+        0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+.btn-secondary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    background-size: 200% 100%;
+    animation: btnSecondaryShimmer 3s linear infinite;
+    border-radius: 25px;
+}
+
+.btn-secondary:hover {
+    transform: translateY(-3px) scale(1.05);
+    background: 
+        linear-gradient(145deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%),
+        radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.12) 0%, transparent 50%);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 
+        0 12px 30px rgba(0, 0, 0, 0.4),
+        0 6px 15px rgba(255, 255, 255, 0.15);
+}
+
+.btn-secondary:hover::before {
+    animation: btnSecondaryShimmer 0.5s linear infinite;
+}
+
+@keyframes btnSecondaryShimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.cta-decoration {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.decoration-circle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.1;
+    animation: ctaFloat 6s ease-in-out infinite;
+}
+
+.decoration-1 {
+    width: 120px;
+    height: 120px;
+    background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+    top: 10%;
+    left: 5%;
+    animation-delay: 0s;
+}
+
+.decoration-2 {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #4ecdc4, #45b7d1);
+    top: 70%;
+    right: 10%;
+    animation-delay: 2s;
+}
+
+.decoration-3 {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #45b7d1, #ff6b6b);
+    bottom: 15%;
+    left: 15%;
+    animation-delay: 4s;
+}
+
+.decoration-4 {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #ff6b6b, #45b7d1);
+    top: 20%;
+    right: 20%;
+    animation-delay: 1s;
+}
+
+@keyframes ctaFloat {
+    0%, 100% { 
+        transform: translateY(0px) rotate(0deg);
+        opacity: 0.1;
+    }
+    50% { 
+        transform: translateY(-20px) rotate(180deg);
+        opacity: 0.2;
+    }
 }
 
 @media (max-width: 768px) {
