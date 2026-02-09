@@ -43,11 +43,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 
 <!-- Contact Section -->
-<section class="section">
+<section class="contact-section" id="contact">
     <div class="container">
-        <div class="section-title">
-            <h2>Contact</h2>
-            <p>Get in touch - we'd love to hear from you</p>
+        <div class="section-header">
+            <div class="header-content">
+                <h2 class="contact-title">
+                    <span class="title-gradient">Contact</span>
+                    <div class="title-underline"></div>
+                </h2>
+                <p class="contact-subtitle">
+                    <span class="subtitle-icon">📧</span>
+                    Get in touch - we'd love to hear from you
+                    <span class="subtitle-icon">💬</span>
+                </p>
+            </div>
+            <div class="header-decoration">
+                <div class="decoration-circle decoration-1"></div>
+                <div class="decoration-circle decoration-2"></div>
+                <div class="decoration-circle decoration-3"></div>
+            </div>
         </div>
         
         <div class="contact-container">
@@ -240,71 +254,452 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <style>
 /* Contact Page Specific Styles */
+.contact-section {
+    padding: 5rem 0;
+    background: var(--dark-bg);
+    position: relative;
+    overflow: hidden;
+}
+
+.contact-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 20%, rgba(255, 107, 107, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(78, 205, 196, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(69, 183, 209, 0.05) 0%, transparent 50%),
+        repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 10px,
+            rgba(255, 255, 255, 0.01) 10px,
+            rgba(255, 255, 255, 0.01) 20px
+        );
+    pointer-events: none;
+    z-index: 0;
+    animation: backgroundShift 20s ease-in-out infinite;
+}
+
+.contact-section::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: 
+        radial-gradient(circle at 30% 70%, rgba(255, 107, 107, 0.03) 0%, transparent 40%),
+        radial-gradient(circle at 70% 30%, rgba(78, 205, 196, 0.03) 0%, transparent 40%);
+    animation: rotateBackground 60s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes backgroundShift {
+    0%, 100% { 
+        background-position: 0% 0%, 100% 100%, 50% 50%, 0% 0%;
+        opacity: 1;
+    }
+    50% { 
+        background-position: 100% 100%, 0% 0%, 100% 0%, 20px 20px;
+        opacity: 0.8;
+    }
+}
+
+@keyframes rotateBackground {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 4rem;
+    position: relative;
+    z-index: 1;
+}
+
+.header-content {
+    position: relative;
+    z-index: 2;
+}
+
+.contact-title {
+    font-size: 3.5rem;
+    font-weight: 900;
+    margin-bottom: 1.5rem;
+    position: relative;
+    display: inline-block;
+}
+
+.title-gradient {
+    background: linear-gradient(135deg, #ff6b6b, #4ecdc4, #45b7d1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200% 200%;
+    animation: gradientShift 4s ease-in-out infinite;
+    position: relative;
+}
+
+@keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.title-underline {
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 4px;
+    background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1);
+    border-radius: 2px;
+    animation: underlineGlow 3s ease-in-out infinite;
+}
+
+@keyframes underlineGlow {
+    0%, 100% { 
+        box-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
+        width: 100px;
+    }
+    50% { 
+        box-shadow: 0 0 30px rgba(78, 205, 196, 0.7);
+        width: 150px;
+    }
+}
+
+.contact-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    font-weight: 400;
+    line-height: 1.6;
+}
+
+.subtitle-icon {
+    font-size: 1.5rem;
+    animation: iconFloat 3s ease-in-out infinite;
+}
+
+.subtitle-icon:first-child {
+    animation-delay: 0s;
+}
+
+.subtitle-icon:last-child {
+    animation-delay: 1.5s;
+}
+
+@keyframes iconFloat {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+}
+
+.header-decoration {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.decoration-circle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.1;
+    animation: float 6s ease-in-out infinite;
+}
+
+.decoration-1 {
+    width: 120px;
+    height: 120px;
+    background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+    top: 20%;
+    left: 10%;
+    animation-delay: 0s;
+}
+
+.decoration-2 {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #4ecdc4, #45b7d1);
+    top: 60%;
+    right: 15%;
+    animation-delay: 2s;
+}
+
+.decoration-3 {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #45b7d1, #ff6b6b);
+    bottom: 20%;
+    left: 20%;
+    animation-delay: 4s;
+}
+
+@keyframes float {
+    0%, 100% { 
+        transform: translateY(0px) rotate(0deg);
+        opacity: 0.1;
+    }
+    50% { 
+        transform: translateY(-20px) rotate(180deg);
+        opacity: 0.2;
+    }
+}
 .contact-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 3rem;
     margin-bottom: 4rem;
+    position: relative;
+    z-index: 1;
 }
 
-.contact-form-section,
-.contact-info-section {
-    background: var(--dark-secondary);
-    padding: 2rem;
-    border-radius: 15px;
-    box-shadow: var(--shadow-lg);
+.contact-form-section {
+    background: 
+        linear-gradient(145deg, var(--dark-secondary) 0%, var(--dark-tertiary) 100%),
+        radial-gradient(circle at 30% 30%, rgba(255, 107, 107, 0.05) 0%, transparent 50%);
+    border-radius: 25px;
+    padding: 2.5rem;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.4),
+        0 8px 20px rgba(255, 107, 107, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
 }
 
-.contact-form-section h3,
-.contact-info-section h3 {
+.contact-form-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--accent-color), var(--primary-color));
+    background-size: 300% 100%;
+    animation: formShimmer 4s linear infinite;
+    z-index: 2;
+}
+
+@keyframes formShimmer {
+    0% { background-position: -300% 0; }
+    100% { background-position: 300% 0; }
+}
+
+.contact-form-section::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, 
+        transparent 0%, 
+        rgba(255, 107, 107, 0.05) 50%, 
+        transparent 100%);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    border-radius: 25px;
+}
+
+.contact-form-section:hover::after {
+    opacity: 1;
+}
+
+.contact-form-section h3 {
     color: var(--text-primary);
     margin-bottom: 2rem;
-    font-size: 1.5rem;
+    font-size: 1.8rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ffffff, #e0e0e0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200% 200%;
+    animation: formTitleGradient 3s ease-in-out infinite;
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 3;
+}
+
+@keyframes formTitleGradient {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
 }
 
 .alert {
     padding: 1rem;
-    border-radius: 8px;
+    border-radius: 15px;
     margin-bottom: 1.5rem;
     font-weight: 500;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
 }
 
 .alert-success {
-    background: var(--success-color);
+    background: 
+        linear-gradient(135deg, rgba(76, 175, 80, 0.9) 0%, rgba(76, 175, 80, 0.8) 100%),
+        radial-gradient(circle at 30% 30%, rgba(76, 175, 80, 0.1) 0%, transparent 50%);
     color: white;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 
+        0 10px 25px rgba(76, 175, 80, 0.3),
+        0 4px 12px rgba(255, 255, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.alert-success::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    background-size: 200% 100%;
+    animation: successShimmer 3s linear infinite;
+}
+
+@keyframes successShimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
 }
 
 .alert-error {
-    background: var(--error-color);
+    background: 
+        linear-gradient(135deg, rgba(244, 67, 54, 0.9) 0%, rgba(244, 67, 54, 0.8) 100%),
+        radial-gradient(circle at 30% 30%, rgba(244, 67, 54, 0.1) 0%, transparent 50%);
     color: white;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 
+        0 10px 25px rgba(244, 67, 54, 0.3),
+        0 4px 12px rgba(255, 255, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.alert-error::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    background-size: 200% 100%;
+    animation: errorShimmer 3s linear infinite;
+}
+
+@keyframes errorShimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.contact-form {
+    position: relative;
+    z-index: 2;
 }
 
 .form-group {
     margin-bottom: 1.5rem;
+    position: relative;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
     color: var(--text-primary);
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200% 200%;
+    animation: labelGradient 4s ease-in-out infinite;
+    position: relative;
+    z-index: 2;
+}
+
+@keyframes labelGradient {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
 }
 
 .form-control {
     width: 100%;
-    padding: 1rem;
-    background: var(--dark-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    background: 
+        linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%),
+        radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.03) 0%, transparent 50%);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
     color: var(--text-primary);
     font-size: 1rem;
-    transition: border-color 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    backdrop-filter: blur(5px);
+}
+
+.form-control::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background-size: 200% 100%;
+    animation: inputShimmer 3s linear infinite;
+    border-radius: 12px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
 .form-control:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+    box-shadow: 
+        0 0 0 3px rgba(255, 107, 107, 0.1),
+        0 0 10px rgba(255, 107, 107, 0.2);
+    background: 
+        linear-gradient(145deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%),
+        radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.03) 0%, transparent 50%);
+    transform: translateY(-2px);
+}
+
+.form-control:focus::before {
+    opacity: 1;
+}
+
+.form-control option {
+    background: var(--dark-tertiary);
+    color: var(--text-primary);
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+}
+
+.form-control option:hover {
+    background: var(--primary-color);
+    color: var(--text-primary);
+}
+
+@keyframes inputShimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
 }
 
 textarea.form-control {
@@ -314,15 +709,55 @@ textarea.form-control {
 
 .recaptcha-container {
     margin: 1rem 0;
+    position: relative;
 }
 
 .btn-lg {
     padding: 1rem 2rem;
     font-size: 1.1rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: var(--text-primary);
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        0 8px 25px rgba(255, 107, 107, 0.4),
+        0 4px 15px rgba(78, 205, 196, 0.2);
 }
 
-.contact-methods {
-    margin-bottom: 2rem;
+.btn-lg::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    background-size: 200% 100%;
+    animation: buttonShimmer 3s linear infinite;
+    border-radius: 25px;
+}
+
+.btn-lg:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 
+        0 12px 35px rgba(255, 107, 107, 0.6),
+        0 6px 20px rgba(78, 205, 196, 0.3);
+}
+
+.btn-lg:hover::before {
+    animation: buttonShimmer 0.5s linear infinite;
+}
+
+@keyframes buttonShimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
 }
 
 .contact-method {
