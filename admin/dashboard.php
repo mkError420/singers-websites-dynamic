@@ -3,9 +3,14 @@ require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/database.php';
 require_once __DIR__ . '/../includes/functions.php';
 
-// Start secure session and require login
-start_secure_session();
-require_login();
+// Start session and check login
+session_start();
+
+// Simple authentication check
+if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
 
 // Get statistics
 $total_songs = fetchOne("SELECT COUNT(*) as count FROM songs")['count'];
@@ -42,41 +47,65 @@ $upcoming_tours = fetchAll("SELECT * FROM tour_dates WHERE event_date >= CURDATE
         .admin-container {
             display: flex;
             min-height: 100vh;
-            background: var(--dark-bg);
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #1a1a2e 100%);
         }
         
         .admin-sidebar {
-            width: 250px;
-            background: var(--dark-secondary);
+            width: 280px;
+            background: linear-gradient(180deg, rgba(255, 107, 107, 0.1) 0%, var(--dark-secondary) 100%);
             padding: 2rem 0;
-            border-right: 1px solid var(--border-color);
+            border-right: 2px solid transparent;
+            border-image: linear-gradient(180deg, var(--primary-color), transparent) 1;
             height: 100vh;
             overflow-y: auto;
             position: fixed;
             top: 0;
             left: 0;
             z-index: 1000;
-            transition: transform 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             display: block;
             visibility: visible;
+            backdrop-filter: blur(10px);
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
         }
         
         .admin-logo {
             text-align: center;
             margin-bottom: 2rem;
             padding: 0 1rem;
+            position: relative;
+        }
+        
+        .admin-logo::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 2px;
         }
         
         .admin-logo h2 {
             color: var(--primary-color);
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: 700;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            text-shadow: 0 4px 8px rgba(255, 107, 107, 0.3);
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         
         .admin-logo small {
             color: var(--text-muted);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.8;
         }
         
         .admin-nav {
@@ -86,6 +115,7 @@ $upcoming_tours = fetchAll("SELECT * FROM tour_dates WHERE event_date >= CURDATE
         
         .admin-nav li {
             margin-bottom: 0.5rem;
+            position: relative;
         }
         
         .admin-nav a {
@@ -96,16 +126,38 @@ $upcoming_tours = fetchAll("SELECT * FROM tour_dates WHERE event_date >= CURDATE
             color: var(--text-primary);
             text-decoration: none;
             background: transparent;
-            border-radius: 10px;
-            transition: all 0.3s ease;
+            border-radius: 15px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             font-weight: 500;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid transparent;
+        }
+        
+        .admin-nav a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            transition: left 0.4s ease;
+            z-index: -1;
         }
         
         .admin-nav a:hover,
         .admin-nav a.active {
-            background: var(--dark-tertiary);
+            background: rgba(255, 107, 107, 0.1);
             color: var(--primary-color);
-            transform: translateX(5px);
+            transform: translateX(8px);
+            border-color: rgba(255, 107, 107, 0.3);
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);
+        }
+        
+        .admin-nav a:hover::before,
+        .admin-nav a.active::before {
+            left: 0;
         }
         
         .admin-nav i {
@@ -115,12 +167,13 @@ $upcoming_tours = fetchAll("SELECT * FROM tour_dates WHERE event_date >= CURDATE
         
         .admin-content {
             flex: 1;
-            margin-left: 250px;
+            margin-left: 280px;
             padding: 2rem;
-            background: var(--dark-bg);
+            background: transparent;
             min-height: 100vh;
             display: block;
             visibility: visible;
+            position: relative;
         }
         
         .admin-header {
@@ -129,13 +182,30 @@ $upcoming_tours = fetchAll("SELECT * FROM tour_dates WHERE event_date >= CURDATE
             align-items: center;
             margin-bottom: 2rem;
             padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 2px solid transparent;
+            border-image: linear-gradient(90deg, var(--primary-color), transparent) 1;
+            position: relative;
+        }
+        
+        .admin-header::before {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
         }
         
         .admin-header h1 {
             color: var(--text-primary);
-            font-size: 2rem;
+            font-size: 2.2rem;
             font-weight: 700;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
         
         .admin-user {
@@ -154,18 +224,32 @@ $upcoming_tours = fetchAll("SELECT * FROM tour_dates WHERE event_date >= CURDATE
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 1.5rem;
             margin-bottom: 3rem;
+            position: relative;
+        }
+        
+        .stats-grid::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: -20px;
+            right: -20px;
+            bottom: -20px;
+            background: radial-gradient(circle at 50% 50%, rgba(255, 107, 107, 0.1) 0%, transparent 70%);
+            border-radius: 20px;
+            z-index: -1;
         }
         
         .stat-card {
-            background: linear-gradient(135deg, var(--dark-secondary) 0%, var(--dark-tertiary) 100%);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
             padding: 2rem;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), 0 5px 15px rgba(255, 107, 107, 0.1);
             text-align: center;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             border: 1px solid rgba(255, 255, 255, 0.1);
             position: relative;
             overflow: hidden;
+            backdrop-filter: blur(10px);
         }
         
         .stat-card::before {
@@ -175,9 +259,21 @@ $upcoming_tours = fetchAll("SELECT * FROM tour_dates WHERE event_date >= CURDATE
             left: 0;
             right: 0;
             height: 3px;
-            background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--primary-color));
             background-size: 200% 100%;
             animation: shimmerGradient 3s linear infinite;
+        }
+        
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 107, 107, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
         }
         
         @keyframes shimmerGradient {
@@ -186,31 +282,41 @@ $upcoming_tours = fetchAll("SELECT * FROM tour_dates WHERE event_date >= CURDATE
         }
         
         .stat-card:hover {
-            transform: translateY(-10px);
+            transform: translateY(-10px) scale(1.02);
             box-shadow: 0 20px 40px rgba(255, 107, 107, 0.2);
+            border-color: rgba(255, 107, 107, 0.3);
+        }
+        
+        .stat-card:hover::after {
+            opacity: 1;
         }
         
         .stat-icon {
-            font-size: 3rem;
+            font-size: 3.5rem;
             color: var(--primary-color);
             margin-bottom: 1rem;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            text-shadow: 0 4px 8px rgba(255, 107, 107, 0.3);
+            position: relative;
+            z-index: 2;
         }
         
         .stat-number {
-            font-size: 2.5rem;
-            font-weight: 700;
+            font-size: 2.8rem;
+            font-weight: 800;
             color: var(--text-primary);
             margin-bottom: 0.5rem;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 2;
         }
         
         .stat-label {
             color: var(--text-secondary);
-            font-weight: 500;
+            font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
+            letter-spacing: 2px;
+            font-size: 0.85rem;
+            opacity: 0.9;
         }
         
         .dashboard-grid {
@@ -221,13 +327,27 @@ $upcoming_tours = fetchAll("SELECT * FROM tour_dates WHERE event_date >= CURDATE
         }
         
         .dashboard-card {
-            background: linear-gradient(135deg, var(--dark-secondary) 0%, var(--dark-tertiary) 100%);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
             border-radius: 20px;
             padding: 2rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(255, 107, 107, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.1);
             position: relative;
             overflow: hidden;
+            backdrop-filter: blur(5px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .dashboard-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+            background-size: 200% 100%;
+            animation: shimmerGradient 4s linear infinite;
         }
         
         .dashboard-card h3 {
@@ -298,40 +418,39 @@ $upcoming_tours = fetchAll("SELECT * FROM tour_dates WHERE event_date >= CURDATE
         }
         
         /* Responsive Design */
-        @media (max-width: 1024px) {
+        @media (max-width: 1400px) {
+            .admin-sidebar {
+                width: 260px;
+            }
+            
+            .admin-content {
+                margin-left: 260px;
+            }
+        }
+        
+        @media (max-width: 1200px) {
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                gap: 1.2rem;
+            }
+            
             .dashboard-grid {
                 grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+        
+        @media (max-width: 1024px) {
+            .admin-sidebar {
+                width: 240px;
+            }
+            
+            .admin-content {
+                margin-left: 240px;
             }
             
             .stats-grid {
                 grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .admin-sidebar {
-                transform: translateX(0);
-                display: block;
-                visibility: visible;
-            }
-            
-            .admin-sidebar.active {
-                transform: translateX(0);
-            }
-            
-            .admin-content {
-                margin-left: 250px;
-                padding: 1rem;
-                display: block;
-                visibility: visible;
-            }
-            
-            .admin-header h1 {
-                font-size: 1.5rem;
-            }
-            
-            .stats-grid {
-                grid-template-columns: 1fr;
                 gap: 1rem;
             }
             
@@ -340,11 +459,74 @@ $upcoming_tours = fetchAll("SELECT * FROM tour_dates WHERE event_date >= CURDATE
             }
             
             .stat-icon {
-                font-size: 2rem;
+                font-size: 3rem;
+            }
+            
+            .stat-number {
+                font-size: 2.4rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .admin-sidebar {
+                transform: translateX(0);
+                display: block;
+                visibility: visible;
+                width: 100%;
+                padding: 1rem 0;
+            }
+            
+            .admin-sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .admin-content {
+                margin-left: 0;
+                padding: 1rem;
+                display: block;
+                visibility: visible;
+            }
+            
+            .admin-header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+            
+            .stat-card {
+                padding: 1.2rem;
+            }
+            
+            .stat-icon {
+                font-size: 2.5rem;
             }
             
             .stat-number {
                 font-size: 2rem;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .admin-header h1 {
+                font-size: 1.5rem;
             }
         }
     </style>

@@ -1,9 +1,6 @@
 <?php
-require_once __DIR__ . '/../config/config.php';
-require_once __DIR__ . '/../includes/functions.php';
-
-// Start secure session
-start_secure_session();
+// Start session
+session_start();
 
 // Destroy all session data
 $_SESSION = [];
@@ -19,5 +16,6 @@ if (ini_get("session.use_cookies")) {
 }
 
 // Redirect to login page
-redirect(APP_URL . '/admin/login.php');
+header('Location: login.php');
+exit();
 ?>

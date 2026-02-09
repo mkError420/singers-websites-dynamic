@@ -288,4 +288,96 @@ function get_videos_with_search_and_category($search_term, $category_name, $limi
     
     return fetchAll($sql, $params);
 }
+
+// Gallery Functions
+function get_gallery_images($limit = null, $offset = 0, $category = null, $active_only = true) {
+    $sql = "SELECT * FROM gallery";
+    $params = [];
+    
+    if ($active_only) {
+        $sql .= " WHERE is_active = 1";
+    }
+    
+    if ($category && $category !== 'all') {
+        $sql .= ($active_only ? " AND" : " WHERE") . " category = ?";
+        $params[] = $category;
+    }
+    
+    $sql .= " ORDER BY created_at DESC";
+    
+    if ($limit) {
+        $sql .= " LIMIT ? OFFSET ?";
+        $params[] = $limit;
+        $params[] = $offset;
+    }
+    
+    return fetchAll($sql, $params);
+}
+
+function get_gallery_categories() {
+    $sql = "SELECT DISTINCT category FROM gallery WHERE is_active = 1 ORDER BY category";
+    $result = fetchAll($sql);
+    $categories = [];
+    foreach ($result as $row) {
+        $categories[] = $row['category'];
+    }
+    return $categories;
+}
+
+function get_gallery_image_count($category = null, $active_only = true) {
+    $sql = "SELECT COUNT(*) as count FROM gallery";
+    $params = [];
+    
+    if ($active_only) {
+        $sql .= " WHERE is_active = 1";
+    }
+    
+    if ($category && $category !== 'all') {
+        $sql .= ($active_only ? " AND" : " WHERE") . " category = ?";
+        $params[] = $category;
+    }
+    
+    return fetchOne($sql, $params)['count'];
+}
+
+function add_gallery_image($title, $description, $image_url, $thumbnail_url, $category, $tags) {
+    $sql = "INSERT INTO gallery (title, description, image_url, thumbnail_url, category, tags) VALUES (?, ?, ?, ?, ?, ?)";
+    $params = [$title, $description, $image_url, $thumbnail_url, $category, $tags];
+    return executeQuery($sql, $params);
+}
+
+function update_gallery_image($id, $title, $description, $category, $tags, $is_active) {
+    $sql = "UPDATE gallery SET title = ?, description = ?, category = ?, tags = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+    $params = [$title, $description, $category, $tags, $is_active, $id];
+    return executeQuery($sql, $params);
+}
+
+function delete_gallery_image($id) {
+    $sql = "DELETE FROM gallery WHERE id = ?";
+    return executeQuery($sql, [$id]);
+}
+
+function get_gallery_image_by_id($id) {
+    $sql = "SELECT * FROM gallery WHERE id = ?";
+    return fetchOne($sql, [$id]);
+}
+
+function search_gallery_images($search_term, $limit = null, $offset = 0) {
+    $sql = "SELECT * FROM gallery WHERE is_active = 1 AND (title LIKE ? OR description LIKE ? OR tags LIKE ? OR category LIKE ?) ORDER BY created_at DESC";
+    $params = ['%' . $search_term . '%', '%' . $search_term . '%', '%' . $search_term . '%', '%' . $search_term . '%'];
+    
+    if ($limit) {
+        $sql .= " LIMIT ? OFFSET ?";
+        $params[] = $limit;
+        $params[] = $offset;
+    }
+    
+    return fetchAll($sql, $params);
+}
+
+function get_search_gallery_count($search_term) {
+    $sql = "SELECT COUNT(*) as count FROM gallery WHERE is_active = 1 AND (title LIKE ? OR description LIKE ? OR tags LIKE ? OR category LIKE ?)";
+    $params = ['%' . $search_term . '%', '%' . $search_term . '%', '%' . $search_term . '%', '%' . $search_term . '%'];
+    return fetchOne($sql, $params)['count'];
+}
 ?>

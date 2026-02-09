@@ -1,0 +1,44 @@
+# Enable URL rewriting
+RewriteEngine On
+
+# Security headers
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options nosniff
+    Header always set X-Frame-Options DENY
+    Header always set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# PHP settings
+<IfModule mod_php7.c>
+    php_flag display_errors On
+    php_value error_reporting E_ALL
+</IfModule>
+
+<IfModule mod_php8.c>
+    php_flag display_errors On
+    php_value error_reporting E_ALL
+</IfModule>
+
+# DirectoryIndex
+DirectoryIndex index.php index.html
+
+# Default character set
+AddDefaultCharset UTF-8
+
+# Hide .htaccess file
+<Files .htaccess>
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Protect sensitive files
+<FilesMatch "\.(sql|log|txt|md)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Allow access to common file types
+<FilesMatch "\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$">
+    Order allow,deny
+    Allow from all
+</FilesMatch>

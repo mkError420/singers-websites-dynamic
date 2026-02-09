@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Directory Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #1a1a2e; color: white; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .file-list { background: #2a2a3e; padding: 20px; border-radius: 10px; margin: 20px 0; }
+        a { color: #ff6b6b; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Directory Test</h1>
+        <p>If you can see this page, the admin directory is accessible.</p>
+        
+        <div class="file-list">
+            <h3>Available Files:</h3>
+            <ul>
+                <li><a href="login.php">login.php</a></li>
+                <li><a href="login-minimal.php">login-minimal.php</a></li>
+                <li><a href="test.php">test.php</a></li>
+                <li><a href="dashboard.php">dashboard.php</a></li>
+                <li><a href="songs.php">songs.php</a></li>
+            </ul>
+        </div>
+        
+        <div class="file-list">
+            <h3>Test Links:</h3>
+            <p><strong>Simple Login Test:</strong> <a href="login-minimal.php">login-minimal.php</a></p>
+            <p><strong>System Check:</strong> <a href="test.php">test.php</a></p>
+            <p><strong>Setup Admin:</strong> <a href="../setup-admin.php">setup-admin.php</a></p>
+        </div>
+        
+        <div class="file-list">
+            <h3>Debugging Info:</h3>
+            <p>Current URL: <script>document.write(window.location.href);</script></p>
+            <p>Server Time: <script>document.write(new Date().toString());</script></p>
+        </div>
+    </div>
+</body>
+</html>

@@ -24,7 +24,19 @@ require_once __DIR__ . '/functions.php';
     <meta name="twitter:description" content="Official website of <?php echo APP_NAME; ?>">
     <meta name="twitter:image" content="<?php echo APP_URL; ?>/assets/images/og-image.jpg">
     
-    <title><?php echo get_page_title(); ?></title>
+    <title><?php
+session_start();
+
+// Check if user is logged in for admin panel
+if (strpos($_SERVER['REQUEST_URI'], '/admin/') !== false && !isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
+
+// Check if it's an admin page
+$is_admin_page = strpos($_SERVER['REQUEST_URI'], '/admin/') !== false;
+?>
+<?php echo get_page_title(); ?></title>
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="<?php echo APP_URL; ?>/assets/images/favicon.ico">
@@ -32,6 +44,9 @@ require_once __DIR__ . '/functions.php';
     
     <!-- CSS -->
     <link rel="stylesheet" href="<?php echo APP_URL; ?>/assets/css/style.css">
+    <?php if ($is_admin_page): ?>
+    <link rel="stylesheet" href="<?php echo APP_URL; ?>/assets/css/admin.css">
+    <?php endif; ?>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -55,6 +70,7 @@ require_once __DIR__ . '/functions.php';
                 <li><a href="<?php echo APP_URL; ?>/index.php" class="nav-link">Home</a></li>
                 <li><a href="<?php echo APP_URL; ?>/music.php" class="nav-link">Music</a></li>
                 <li><a href="<?php echo APP_URL; ?>/videos.php" class="nav-link">Videos</a></li>
+                <li><a href="<?php echo APP_URL; ?>/gallery.php" class="nav-link">Gallery</a></li>
                 <li><a href="<?php echo APP_URL; ?>/tour.php" class="nav-link">Tour</a></li>
                 <li><a href="<?php echo APP_URL; ?>/about.php" class="nav-link">About</a></li>
                 <li><a href="<?php echo APP_URL; ?>/contact.php" class="nav-link">Contact</a></li>

@@ -26,23 +26,30 @@ define('SMTP_PASS', '');
 define('FROM_EMAIL', 'noreply@singerwebsite.com');
 define('FROM_NAME', APP_NAME);
 
-// Error reporting
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 // Timezone
 date_default_timezone_set('UTC');
 
+// Error reporting (only for development)
+if ($_SERVER['SERVER_NAME'] === 'localhost') {
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+} else {
+    error_reporting(0);
+    ini_set('display_errors', 0);
+}
+
 // Start secure session
 function start_secure_session() {
+    // Check if session is already started
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        return;
+    }
+    
     $secure = true;
     $httponly = true;
     
-    // Force session to use cookies
-    if (ini_set('session.use_only_cookies', 1) === FALSE) {
-        header("Location: error.php?err=Could not initiate a safe session");
-        exit();
-    }
+    // Force session to use cookies (don't send header on failure)
+    ini_set('session.use_only_cookies', 1);
     
     // Get current cookies params
     $cookieParams = session_get_cookie_params();
