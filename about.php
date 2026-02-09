@@ -56,45 +56,90 @@ require_once __DIR__ . '/includes/functions.php';
         
         <!-- Story Section -->
         <div class="story-section">
-            <h3 class="section-subtitle">My Story</h3>
+            <div class="story-header">
+                <h3 class="story-title">
+                    <span class="title-gradient">My Story</span>
+                    <div class="title-underline"></div>
+                </h3>
+                <p class="story-subtitle">
+                    <span class="subtitle-icon">🎭</span>
+                    The journey that shaped the music
+                    <span class="subtitle-icon">🌟</span>
+                </p>
+            </div>
             <div class="story-timeline">
                 <div class="timeline-item">
-                    <div class="timeline-date">2013</div>
+                    <div class="timeline-date">
+                        <span class="year">2013</span>
+                        <div class="date-decoration"></div>
+                    </div>
                     <div class="timeline-content">
-                        <h4>The Beginning</h4>
-                        <p>Started writing songs in my bedroom, inspired by the stories of everyday life and the emotions that connect us all.</p>
+                        <div class="content-header">
+                            <h4>The Beginning</h4>
+                            <div class="content-icon">🎵</div>
+                        </div>
+                        <p>Started writing songs in my bedroom, inspired by stories of everyday life and emotions that connect us all.</p>
+                        <div class="content-decoration"></div>
                     </div>
                 </div>
                 
                 <div class="timeline-item">
-                    <div class="timeline-date">2016</div>
+                    <div class="timeline-date">
+                        <span class="year">2016</span>
+                        <div class="date-decoration"></div>
+                    </div>
                     <div class="timeline-content">
-                        <h4>First Breakthrough</h4>
+                        <div class="content-header">
+                            <h4>First Breakthrough</h4>
+                            <div class="content-icon">🚀</div>
+                        </div>
                         <p>Released my debut single that gained unexpected traction online, leading to opportunities to perform at local venues.</p>
+                        <div class="content-decoration"></div>
                     </div>
                 </div>
                 
                 <div class="timeline-item">
-                    <div class="timeline-date">2019</div>
+                    <div class="timeline-date">
+                        <span class="year">2019</span>
+                        <div class="date-decoration"></div>
+                    </div>
                     <div class="timeline-content">
-                        <h4>Debut Album</h4>
+                        <div class="content-header">
+                            <h4>Debut Album</h4>
+                            <div class="content-icon">💿</div>
+                        </div>
                         <p>Launched my first full-length album, a collection of songs that represented years of growth, experimentation, and discovery.</p>
+                        <div class="content-decoration"></div>
                     </div>
                 </div>
                 
                 <div class="timeline-item">
-                    <div class="timeline-date">2022</div>
+                    <div class="timeline-date">
+                        <span class="year">2022</span>
+                        <div class="date-decoration"></div>
+                    </div>
                     <div class="timeline-content">
-                        <h4>International Recognition</h4>
+                        <div class="content-header">
+                            <h4>International Recognition</h4>
+                            <div class="content-icon">🌍</div>
+                        </div>
                         <p>Toured across multiple countries, sharing my music with diverse audiences and learning from different cultures along the way.</p>
+                        <div class="content-decoration"></div>
                     </div>
                 </div>
                 
                 <div class="timeline-item">
-                    <div class="timeline-date">2024</div>
+                    <div class="timeline-date">
+                        <span class="year">2024</span>
+                        <div class="date-decoration"></div>
+                    </div>
                     <div class="timeline-content">
-                        <h4>New Chapter</h4>
+                        <div class="content-header">
+                            <h4>New Chapter</h4>
+                            <div class="content-icon">✨</div>
+                        </div>
                         <p>Currently working on new music that pushes creative boundaries while staying true to the authentic storytelling that defines my art.</p>
+                        <div class="content-decoration"></div>
                     </div>
                 </div>
             </div>
@@ -665,53 +710,295 @@ require_once __DIR__ . '/includes/functions.php';
     color: var(--text-primary);
 }
 
-.story-timeline {
-    position: relative;
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.timeline-item {
-    display: flex;
-    gap: 2rem;
-    margin-bottom: 3rem;
-    position: relative;
-}
-
-.timeline-item::before {
-    content: '';
-    position: absolute;
-    left: 60px;
-    top: 30px;
-    bottom: -30px;
-    width: 2px;
-    background: var(--border-color);
-}
-
-.timeline-item:last-child::before {
-    display: none;
-}
-
-.timeline-date {
-    background: var(--primary-color);
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    font-weight: 600;
-    min-width: 80px;
-    text-align: center;
+.story-section {
+    margin-bottom: 4rem;
     position: relative;
     z-index: 1;
 }
 
-.timeline-content h4 {
+.story-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    position: relative;
+}
+
+.story-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    position: relative;
+    display: inline-block;
+}
+
+.story-title .title-gradient {
+    background: linear-gradient(135deg, #ff6b6b, #4ecdc4, #45b7d1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200% 200%;
+    animation: storyTitleGradient 4s ease-in-out infinite;
+}
+
+@keyframes storyTitleGradient {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.story-title .title-underline {
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1);
+    border-radius: 2px;
+    animation: storyUnderlineGlow 3s ease-in-out infinite;
+}
+
+@keyframes storyUnderlineGlow {
+    0%, 100% { 
+        box-shadow: 0 0 15px rgba(255, 107, 107, 0.5);
+        width: 80px;
+    }
+    50% { 
+        box-shadow: 0 0 25px rgba(78, 205, 196, 0.7);
+        width: 120px;
+    }
+}
+
+.story-subtitle {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    font-weight: 400;
+}
+
+.subtitle-icon {
+    font-size: 1.3rem;
+    animation: storyIconFloat 3s ease-in-out infinite;
+}
+
+.subtitle-icon:first-child {
+    animation-delay: 0s;
+}
+
+.subtitle-icon:last-child {
+    animation-delay: 1.5s;
+}
+
+@keyframes storyIconFloat {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+}
+
+.story-timeline {
+    position: relative;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 0;
+}
+
+.story-timeline::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, 
+        transparent 0%, 
+        rgba(255, 107, 107, 0.3) 20%, 
+        rgba(78, 205, 196, 0.3) 50%, 
+        rgba(69, 183, 209, 0.3) 80%, 
+        transparent 100%);
+    transform: translateX(-50%);
+    border-radius: 2px;
+}
+
+.timeline-item {
+    display: flex;
+    gap: 3rem;
+    margin-bottom: 4rem;
+    position: relative;
+    align-items: center;
+}
+
+.timeline-item:nth-child(odd) {
+    flex-direction: row;
+}
+
+.timeline-item:nth-child(even) {
+    flex-direction: row-reverse;
+}
+
+.timeline-item:nth-child(odd) .timeline-date {
+    margin-right: auto;
+}
+
+.timeline-item:nth-child(even) .timeline-date {
+    margin-left: auto;
+}
+
+.timeline-date {
+    position: relative;
+    z-index: 2;
+    min-width: 120px;
+    text-align: center;
+}
+
+.timeline-date .year {
+    display: block;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 25px;
+    font-weight: 700;
+    font-size: 1.2rem;
+    box-shadow: 
+        0 10px 25px rgba(255, 107, 107, 0.3),
+        0 4px 15px rgba(78, 205, 196, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.timeline-date .year::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    background-size: 200% 100%;
+    animation: yearShimmer 3s linear infinite;
+}
+
+@keyframes yearShimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.date-decoration {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 140px;
+    height: 140px;
+    border: 2px solid rgba(255, 107, 107, 0.2);
+    border-radius: 50%;
+    animation: datePulse 4s ease-in-out infinite;
+}
+
+@keyframes datePulse {
+    0%, 100% { 
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.3;
+    }
+    50% { 
+        transform: translate(-50%, -50%) scale(1.1);
+        opacity: 0.6;
+    }
+}
+
+.timeline-content {
+    flex: 1;
+    background: 
+        linear-gradient(145deg, var(--dark-secondary) 0%, var(--dark-tertiary) 100%),
+        radial-gradient(circle at 30% 30%, rgba(255, 107, 107, 0.05) 0%, transparent 50%);
+    padding: 2rem;
+    border-radius: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 
+        0 15px 35px rgba(0, 0, 0, 0.3),
+        0 6px 20px rgba(255, 107, 107, 0.1);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.timeline-content:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 
+        0 20px 45px rgba(255, 107, 107, 0.2),
+        0 8px 25px rgba(78, 205, 196, 0.15);
+    border-color: rgba(255, 107, 107, 0.3);
+}
+
+.timeline-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--accent-color), var(--primary-color));
+    background-size: 300% 100%;
+    animation: contentShimmer 4s linear infinite;
+}
+
+@keyframes contentShimmer {
+    0% { background-position: -300% 0; }
+    100% { background-position: 300% 0; }
+}
+
+.content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.content-header h4 {
     color: var(--text-primary);
-    margin-bottom: 0.5rem;
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ffffff, #e0e0e0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200% 200%;
+    animation: contentTitleGradient 3s ease-in-out infinite;
+}
+
+@keyframes contentTitleGradient {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.content-icon {
+    font-size: 1.5rem;
+    animation: contentIconBounce 2s ease-in-out infinite;
+}
+
+@keyframes contentIconBounce {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
 }
 
 .timeline-content p {
     color: var(--text-secondary);
-    line-height: 1.6;
+    line-height: 1.7;
+    margin: 0;
+    position: relative;
+    z-index: 2;
+}
+
+.content-decoration {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, rgba(255, 107, 107, 0.1), rgba(78, 205, 196, 0.1));
+    border-radius: 50%;
+    transform: translate(30%, 30%);
+    opacity: 0.5;
 }
 
 .influences-grid {
