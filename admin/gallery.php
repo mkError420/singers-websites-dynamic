@@ -524,20 +524,7 @@ function createThumbnail($source, $destination, $width, $height) {
                 <small>Admin Panel</small>
             </div>
             
-            <nav>
-                <ul class="admin-nav">
-                    <li><a href="dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                    <li><a href="songs.php"><i class="fas fa-music"></i> Songs</a></li>
-                    <li><a href="videos.php"><i class="fas fa-video"></i> Videos</a></li>
-                    <li><a href="tour.php"><i class="fas fa-calendar-alt"></i> Tour Dates</a></li>
-                    <li><a href="albums.php"><i class="fas fa-compact-disc"></i> Albums</a></li>
-                    <li><a href="gallery.php" class="active"><i class="fas fa-images"></i> Gallery</a></li>
-                    <li><a href="messages.php"><i class="fas fa-envelope"></i> Messages</a></li>
-                    <li><a href="subscribers.php"><i class="fas fa-users"></i> Subscribers</a></li>
-                    <li><a href="settings.php"><i class="fas fa-cog"></i> Settings</a></li>
-                    <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-                </ul>
-            </nav>
+            <?php require_once __DIR__ . '/../includes/admin-nav.php'; ?>
         </aside>
         
         <!-- Main Content -->

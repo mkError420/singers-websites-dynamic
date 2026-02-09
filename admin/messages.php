@@ -1,11 +1,16 @@
 <?php
-require_once __DIR__ . '/../includes/header.php';
+// Start session and check login
+session_start();
+
+// Simple authentication check
+if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
+// Include database
 require_once __DIR__ . '/../includes/database.php';
 require_once __DIR__ . '/../includes/functions.php';
-
-// Start secure session and require login
-start_secure_session();
-require_login();
 
 // Get all messages
 $all_messages = fetchAll("SELECT * FROM contact_messages ORDER BY created_at DESC");
@@ -101,8 +106,14 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
         
         .admin-content {
             flex: 1;
+            margin-left: 0;
             padding: 2rem;
-            background: var(--dark-bg);
+            background: transparent;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
         
         .admin-header {
@@ -125,10 +136,26 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
         
         .messages-table {
             width: 100%;
-            background: var(--dark-secondary);
-            border-radius: 10px;
+            max-width: 1000px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border-radius: 15px;
             overflow: hidden;
-            box-shadow: var(--shadow-md);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), 0 5px 15px rgba(255, 107, 107, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .messages-table::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--primary-color));
+            background-size: 200% 100%;
+            animation: shimmerGradient 3s linear infinite;
         }
         
         .messages-table table {
@@ -137,17 +164,29 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
         }
         
         .messages-table th {
-            background: var(--dark-tertiary);
+            background: rgba(0, 0, 0, 0.3);
             color: var(--text-primary);
-            padding: 1rem;
+            padding: 1rem 1.5rem;
             text-align: left;
             font-weight: 600;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         
         .messages-table td {
-            padding: 1rem;
-            border-bottom: 1px solid var(--border-color);
+            padding: 1.2rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+        
+        .messages-table tbody tr:hover {
+            background: rgba(255, 107, 107, 0.05);
+        }
+        
+        .messages-table tbody tr:hover td {
+            color: var(--text-primary);
         }
         
         .messages-table tr:hover {

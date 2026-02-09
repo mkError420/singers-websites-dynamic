@@ -1,11 +1,16 @@
 <?php
-require_once __DIR__ . '/../includes/header.php';
+// Start session and check login
+session_start();
+
+// Simple authentication check
+if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
+// Include database
 require_once __DIR__ . '/../includes/database.php';
 require_once __DIR__ . '/../includes/functions.php';
-
-// Start secure session and require login
-start_secure_session();
-require_login();
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -77,8 +82,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .admin-content {
             flex: 1;
+            margin-left: 0;
             padding: 2rem;
-            background: var(--dark-bg);
+            background: transparent;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
         
         .admin-header {
@@ -100,11 +111,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         .settings-form {
-            background: var(--dark-secondary);
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: var(--shadow-md);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), 0 5px 15px rgba(255, 107, 107, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
             max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .settings-form::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--primary-color));
+            background-size: 200% 100%;
+            animation: shimmerGradient 3s linear infinite;
         }
         
         .form-group {
@@ -114,15 +142,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .form-group label {
             display: block;
             margin-bottom: 0.5rem;
-            font-weight: 500;
+            font-weight: 600;
             color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
         }
         
         .form-control {
             width: 100%;
             padding: 1rem;
-            background: var(--dark-tertiary);
-            border: 1px solid var(--border-color);
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             color: var(--text-primary);
             font-size: 1rem;
@@ -135,26 +166,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
         }
         
-        textarea.form-control {
+        .textarea.form-control {
             resize: vertical;
             min-height: 100px;
         }
         
         .btn-save {
-            background: var(--primary-color);
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
             color: var(--text-primary);
-            padding: 1rem 2rem;
             border: none;
+            padding: 0.75rem 1.5rem;
             border-radius: 8px;
-            font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         
         .btn-save:hover {
-            background: var(--secondary-color);
             transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(255, 107, 107, 0.2);
         }
         
         .alert-success {

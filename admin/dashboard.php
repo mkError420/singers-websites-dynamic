@@ -169,11 +169,12 @@ $upcoming_tours = fetchAll("SELECT * FROM tour_dates WHERE event_date >= CURDATE
             flex: 1;
             margin-left: 280px;
             padding: 2rem;
-            background: transparent;
+            background: var(--dark-bg);
             min-height: 100vh;
-            display: block;
-            visibility: visible;
-            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 2rem;
         }
         
         .admin-header {
@@ -321,7 +322,7 @@ $upcoming_tours = fetchAll("SELECT * FROM tour_dates WHERE event_date >= CURDATE
         
         .dashboard-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
             margin-bottom: 2rem;
         }
@@ -540,19 +541,7 @@ $upcoming_tours = fetchAll("SELECT * FROM tour_dates WHERE event_date >= CURDATE
                 <small>Admin Panel</small>
             </div>
             
-            <nav>
-                <ul class="admin-nav">
-                    <li><a href="dashboard.php" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                    <li><a href="songs.php"><i class="fas fa-music"></i> Songs</a></li>
-                    <li><a href="videos.php"><i class="fas fa-video"></i> Videos</a></li>
-                    <li><a href="tour.php"><i class="fas fa-calendar-alt"></i> Tour Dates</a></li>
-                    <li><a href="albums.php"><i class="fas fa-compact-disc"></i> Albums</a></li>
-                    <li><a href="messages.php"><i class="fas fa-envelope"></i> Messages</a></li>
-                    <li><a href="subscribers.php"><i class="fas fa-users"></i> Subscribers</a></li>
-                    <li><a href="settings.php"><i class="fas fa-cog"></i> Settings</a></li>
-                    <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-                </ul>
-            </nav>
+            <?php require_once __DIR__ . '/../includes/admin-nav.php'; ?>
         </aside>
         
         <!-- Main Content -->
@@ -644,6 +633,35 @@ $upcoming_tours = fetchAll("SELECT * FROM tour_dates WHERE event_date >= CURDATE
                     </ul>
                 </div>
                 
+                <!-- Albums Section -->
+                <div class="dashboard-card">
+                    <h3>Albums</h3>
+                    <?php 
+                        // Get albums data
+                        $albums = fetchAll("SELECT album, COUNT(*) as song_count FROM songs GROUP BY album ORDER BY album");
+                        
+                        // Check if we have albums
+                        if (!empty($albums)):
+                    ?>
+                            <div class="albums-grid">
+                                <?php foreach ($albums as $album): ?>
+                                    <div class="album-card">
+                                        <h4><?php echo xss_clean($album['album']); ?></h4>
+                                        <p><?php echo $album['song_count']; ?> songs</p>
+                                        <div class="album-actions">
+                                            <a href="edit-album.php?album=<?php echo urlencode($album['album']); ?>" class="btn-sm btn-primary">Edit</a>
+                                            <a href="delete-album.php?album=<?php echo urlencode($album['album']); ?>" class="btn-sm btn-danger">Delete</a>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php else: ?>
+                            <div class="no-content">
+                                <p>No albums available yet. <a href="add-song.php">Add songs with album information</a> to create albums.</p>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                
                 <!-- Recent Messages -->
                 <div class="dashboard-card">
                     <h3>
@@ -656,16 +674,15 @@ $upcoming_tours = fetchAll("SELECT * FROM tour_dates WHERE event_date >= CURDATE
                                 <li class="activity-item">
                                     <div class="activity-info">
                                         <div class="activity-title"><?php echo xss_clean($message['subject']); ?></div>
-                                        <div class="activity-meta"><?php echo xss_clean($message['name']); ?></div>
+                                        <div class="activity-meta"><?php echo xss_clean($message['name']); ?> • <?php echo format_date($message['created_at'], 'M j, Y'); ?></div>
                                     </div>
-                                    <div class="activity-date"><?php echo format_date($message['created_at'], 'M j, Y'); ?></div>
                                 </li>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <li class="activity-item">
                                 <div class="activity-info">
                                     <div class="activity-title">No messages yet</div>
-                                    <div class="activity-meta">No contact messages</div>
+                                    <div class="activity-meta">Send your first message</div>
                                 </div>
                             </li>
                         <?php endif; ?>
@@ -813,21 +830,15 @@ $upcoming_tours = fetchAll("SELECT * FROM tour_dates WHERE event_date >= CURDATE
         <!-- Main Content -->
         <main class="admin-content">
             <div class="admin-header">
-                <h1>Dashboard</h1>
+                <h1>Admin Dashboard</h1>
                 <div class="admin-user">
                     <span>Welcome, <?php echo $_SESSION['username']; ?></span>
                     <i class="fas fa-user-circle"></i>
                 </div>
             </div>
             
-            <!-- Statistics -->
+            <!-- Statistics Cards -->
             <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-music"></i></div>
-                    <div class="stat-number"><?php echo $total_songs; ?></div>
-                    <div class="stat-label">Total Songs</div>
-                </div>
-                
                 <div class="stat-card">
                     <div class="stat-icon"><i class="fas fa-video"></i></div>
                     <div class="stat-number"><?php echo $total_videos; ?></div>
@@ -837,163 +848,9 @@ $upcoming_tours = fetchAll("SELECT * FROM tour_dates WHERE event_date >= CURDATE
                 <div class="stat-card">
                     <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
                     <div class="stat-number"><?php echo $total_tour_dates; ?></div>
-                    <div class="stat-label">Tour Dates</div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-envelope"></i></div>
-                    <div class="stat-number"><?php echo $total_messages; ?></div>
-                    <div class="stat-label">Unread Messages</div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-users"></i></div>
-                    <div class="stat-number"><?php echo $total_subscribers; ?></div>
                     <div class="stat-label">Subscribers</div>
                 </div>
-            </div>
-            
-            <!-- Recent Activity -->
-            <div class="dashboard-grid">
-                <div class="dashboard-card">
-                    <h3>
-                        Recent Songs
-                        <a href="songs.php" class="view-all">View All</a>
-                    </h3>
-                    <ul class="activity-list">
-                        <?php if (!empty($recent_songs)): ?>
-                            <?php foreach ($recent_songs as $song): ?>
-                                <li class="activity-item">
-                                    <div class="activity-info">
-                                        <div class="activity-title"><?php echo xss_clean($song['title']); ?></div>
-                                        <div class="activity-meta"><?php echo format_date($song['created_at'], 'M j, Y'); ?></div>
-                                    </div>
-                                    <div class="activity-action">
-                                        <a href="edit-song.php?id=<?php echo $song['id']; ?>" class="btn-quick-action">Edit</a>
-                                    </div>
-                                </li>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <li class="activity-item">
-                                <div class="activity-info">
-                                    <div class="activity-title">No songs yet</div>
-                                </div>
-                            </li>
-                        <?php endif; ?>
-                    </ul>
-                </div>
-                
-                <div class="dashboard-card">
-                    <h3>
-                        Recent Messages
-                        <a href="messages.php" class="view-all">View All</a>
-                    </h3>
-                    <ul class="activity-list">
-                        <?php if (!empty($recent_messages)): ?>
-                            <?php foreach ($recent_messages as $message): ?>
-                                <li class="activity-item">
-                                    <div class="activity-info">
-                                        <div class="activity-title"><?php echo xss_clean($message['subject']); ?></div>
-                                        <div class="activity-meta"><?php echo xss_clean($message['name']); ?> • <?php echo format_date($message['created_at'], 'M j, Y'); ?></div>
-                                    </div>
-                                    <div class="activity-action">
-                                        <?php if (!$message['is_read']): ?>
-                                            <span style="color: var(--primary-color);">•</span>
-                                        <?php endif; ?>
-                                    </div>
-                                </li>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <li class="activity-item">
-                                <div class="activity-info">
-                                    <div class="activity-title">No messages yet</div>
-                                </div>
-                            </li>
-                        <?php endif; ?>
-                    </ul>
-                </div>
-            </div>
-            
-            <!-- Upcoming Tours -->
-            <div class="dashboard-card">
-                <h3>
-                    Upcoming Tour Dates
-                    <a href="tour.php" class="view-all">View All</a>
-                </h3>
-                <ul class="activity-list">
-                    <?php if (!empty($upcoming_tours)): ?>
-                        <?php foreach ($upcoming_tours as $tour): ?>
-                            <li class="activity-item">
-                                <div class="activity-info">
-                                    <div class="activity-title"><?php echo xss_clean($tour['event_name']); ?></div>
-                                    <div class="activity-meta"><?php echo xss_clean($tour['venue']); ?> • <?php echo format_date($tour['event_date'], 'M j, Y'); ?></div>
-                                </div>
-                                <div class="activity-action">
-                                    <a href="edit-tour.php?id=<?php echo $tour['id']; ?>" class="btn-quick-action">Edit</a>
-                                </div>
-                            </li>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <li class="activity-item">
-                            <div class="activity-info">
-                                <div class="activity-title">No upcoming tours</div>
-                            </div>
-                        </li>
-                    <?php endif; ?>
-                </ul>
-            </div>
-            
-            <?php if (isset($error)): ?>
-                <div class="alert-error">
-                    <?php echo $error; ?>
-                </div>
-            <?php endif; ?>
-            
-            <?php if ($success_message): ?>
-                <div class="alert-success">
-                    <?php echo $success_message; ?>
-                </div>
-            <?php endif; ?>
-            
-            <!-- Albums Section -->
-            <div class="albums-section">
-                <div class="section-title">
-                    <h3>Albums</h3>
-                    <p>Manage your album collection</p>
-                </div>
-                
-                <div class="albums-grid">
-                    <?php
-                    // Get unique albums from database
-                    $albums_query = "SELECT DISTINCT album, artist, cover_image, COUNT(*) as song_count FROM songs WHERE album IS NOT NULL AND album != '' GROUP BY album ORDER BY album ASC";
-                    $albums = fetchAll($albums_query);
-                    
-                    if (!empty($albums)):
-                    ?>
-                        <?php foreach ($albums as $album): ?>
-                            <div class="album-card">
-                                <img src="<?php echo APP_URL . '/' . ($album['cover_image'] ?: 'assets/images/default-album.jpg'); ?>" 
-                                     alt="<?php echo xss_clean($album['album']); ?>" class="album-cover">
-                                <div class="album-info">
-                                    <h4><?php echo xss_clean($album['album']); ?></h4>
-                                    <p><?php echo xss_clean($album['artist']); ?> • <?php echo $album['song_count']; ?> songs</p>
-                                    <div class="album-actions">
-                                        <a href="edit-album.php?album=<?php echo urlencode($album['album']); ?>" class="btn btn-sm btn-primary">
-                                            <i class="fas fa-edit"></i> Edit
-                                        </a>
-                                        <a href="delete-album.php?album=<?php echo urlencode($album['album']); ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this album and all its songs?')">
-                                            <i class="fas fa-trash"></i> Delete
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <div class="no-content">
-                            <p>No albums available yet. <a href="add-song.php">Add songs with album information</a> to create albums.</p>
-                        </div>
-                    <?php endif; ?>
-                </div>
+                    </div>
             </div>
         </main>
     </div>

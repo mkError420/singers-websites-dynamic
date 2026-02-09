@@ -1,11 +1,8 @@
 <?php
+$page_title = 'Manage Videos';
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/database.php';
 require_once __DIR__ . '/../includes/functions.php';
-
-// Start secure session and require login
-start_secure_session();
-require_login();
 
 // Get all videos
 $all_videos = fetchAll("SELECT * FROM videos ORDER BY created_at DESC");
@@ -95,8 +92,14 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
         
         .admin-content {
             flex: 1;
+            margin-left: 0;
             padding: 2rem;
-            background: var(--dark-bg);
+            background: transparent;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
         
         .admin-header {
@@ -119,20 +122,40 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
         
         .videos-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
             gap: 2rem;
+            margin: 0 auto;
+            max-width: 1200px;
+            width: 100%;
+            justify-content: center;
         }
         
         .video-card {
-            background: var(--dark-secondary);
-            border-radius: 15px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border-radius: 20px;
             overflow: hidden;
-            box-shadow: var(--shadow-md);
-            transition: transform 0.3s ease;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), 0 5px 15px rgba(255, 107, 107, 0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+        
+        .video-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--primary-color));
+            background-size: 200% 100%;
+            animation: shimmerGradient 3s linear infinite;
         }
         
         .video-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(255, 107, 107, 0.2);
+            border-color: rgba(255, 107, 107, 0.3);
         }
         
         .video-thumbnail {
@@ -142,36 +165,48 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
             background: var(--dark-tertiary);
         }
         
+        @keyframes shimmerGradient {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        
         .video-info {
             padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
         }
         
-        .video-title {
+        .video-info h3 {
             color: var(--text-primary);
-            font-weight: 600;
             margin-bottom: 0.5rem;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
+            font-weight: 600;
         }
         
-        .video-description {
+        .video-info p {
             color: var(--text-secondary);
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
-            line-height: 1.5;
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
         }
         
         .video-meta {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1rem;
-            font-size: 0.8rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .video-meta span {
             color: var(--text-muted);
+            font-size: 0.9rem;
         }
         
         .video-actions {
             display: flex;
             gap: 0.5rem;
+            margin-top: 1rem;
         }
         
         .btn-sm {
@@ -268,9 +303,22 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
             </div>
             
             <?php if ($success_message): ?>
-                <div class="alert-success">
+                <div class="alert-success" id="success-message">
                     <?php echo $success_message; ?>
                 </div>
+                <script>
+                    // Auto-hide success message after 4 seconds
+                    setTimeout(function() {
+                        const successMsg = document.getElementById('success-message');
+                        if (successMsg) {
+                            successMsg.style.transition = 'opacity 0.5s';
+                            successMsg.style.opacity = '0';
+                            setTimeout(function() {
+                                successMsg.style.display = 'none';
+                            }, 500);
+                        }
+                    }, 4000);
+                </script>
             <?php endif; ?>
             
             <a href="add-video.php" class="add-video-btn">

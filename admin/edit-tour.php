@@ -1,10 +1,8 @@
 <?php
+$page_title = 'Edit Tour Date';
+require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/database.php';
 require_once __DIR__ . '/../includes/functions.php';
-
-// Start secure session and require login
-start_secure_session();
-require_login();
 
 // Get tour ID from URL
 $tour_id = $_GET['id'] ?? 0;

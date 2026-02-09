@@ -1,10 +1,16 @@
 <?php
+// Start session and check login
+session_start();
+
+// Simple authentication check
+if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
+// Include database
 require_once __DIR__ . '/../includes/database.php';
 require_once __DIR__ . '/../includes/functions.php';
-
-// Start secure session and require login
-start_secure_session();
-require_login();
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -119,8 +125,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .admin-content {
             flex: 1;
+            margin-left: 0;
             padding: 2rem;
-            background: var(--dark-bg);
+            background: transparent;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
         
         .admin-header {
@@ -143,10 +155,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .song-form {
             background: var(--dark-secondary);
-            padding: 2rem;
+            padding: 3rem;
             border-radius: 15px;
             box-shadow: var(--shadow-md);
-            max-width: 800px;
+            max-width: 600px;
+            width: 100%;
+            margin: 0 auto;
         }
         
         .form-group {

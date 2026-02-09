@@ -1,10 +1,8 @@
 <?php
-require_once __DIR__ . '/../database.php';
-require_once __DIR__ . '/../functions.php';
-
-// Start secure session and require login
-start_secure_session();
-require_login();
+$page_title = 'Delete Album';
+require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../includes/database.php';
+require_once __DIR__ . '/../includes/functions.php';
 
 // Get album name from URL
 $album_name = sanitize_input($_GET['album'] ?? '');

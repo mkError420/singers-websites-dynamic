@@ -1,10 +1,8 @@
 <?php
+$page_title = 'Manage Albums';
+require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/database.php';
 require_once __DIR__ . '/../includes/functions.php';
-
-// Start secure session and require login
-start_secure_session();
-require_login();
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -93,8 +91,14 @@ $albums = fetchAll($albums_query);
         
         .admin-content {
             flex: 1;
+            margin-left: 0;
             padding: 2rem;
-            background: var(--dark-bg);
+            background: transparent;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
         
         .admin-header {
@@ -117,20 +121,40 @@ $albums = fetchAll($albums_query);
         
         .albums-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
             gap: 2rem;
+            margin: 0 auto;
+            max-width: 1200px;
+            width: 100%;
+            justify-content: center;
         }
         
         .album-card {
-            background: var(--dark-secondary);
-            border-radius: 15px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border-radius: 20px;
             overflow: hidden;
-            transition: transform 0.3s ease;
-            box-shadow: var(--shadow-md);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), 0 5px 15px rgba(255, 107, 107, 0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+        
+        .album-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--primary-color));
+            background-size: 200% 100%;
+            animation: shimmerGradient 3s linear infinite;
         }
         
         .album-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(255, 107, 107, 0.2);
+            border-color: rgba(255, 107, 107, 0.3);
         }
         
         .album-cover {
@@ -139,20 +163,29 @@ $albums = fetchAll($albums_query);
             object-fit: cover;
         }
         
-        .album-info {
-            padding: 1.5rem;
-            text-align: center;
+        @keyframes shimmerGradient {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
         }
         
-        .album-info h4 {
-            margin-bottom: 0.5rem;
+        .album-info {
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+            border-radius: 10px;
+        }
+        
+        .album-info h3 {
             color: var(--text-primary);
+            margin-bottom: 0.5rem;
             font-size: 1.2rem;
+            font-weight: 600;
         }
         
         .album-info p {
             color: var(--text-secondary);
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
         }
         
         .album-meta {
@@ -160,6 +193,13 @@ $albums = fetchAll($albums_query);
             justify-content: space-between;
             align-items: center;
             margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .album-meta span {
+            color: var(--text-muted);
+            font-size: 0.9rem;
         }
         
         .song-count {
@@ -272,6 +312,13 @@ $albums = fetchAll($albums_query);
                 <div class="alert-success">
                     Album "<?php echo xss_clean($_GET['deleted']); ?>" deleted successfully! 
                     <?php echo $_GET['rows']; ?> songs removed.
+                </div>
+            <?php endif; ?>
+            
+            <?php if (isset($_GET['album_updated'])): ?>
+                <div class="alert-success">
+                    Album "<?php echo xss_clean($_GET['album_updated']); ?>" updated successfully! 
+                    <?php echo $_GET['rows']; ?> songs affected.
                 </div>
             <?php endif; ?>
             

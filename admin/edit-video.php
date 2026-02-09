@@ -1,10 +1,15 @@
 <?php
-require_once __DIR__ . '/../includes/database.php';
+// Start session and check login first
+session_start();
+
+// Include functions for sanitize_input
 require_once __DIR__ . '/../includes/functions.php';
 
-// Start secure session and require login
-start_secure_session();
-require_login();
+// Simple authentication check
+if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
 
 // Get video ID from URL
 $video_id = $_GET['id'] ?? 0;
@@ -14,15 +19,7 @@ if (!$video_id) {
     exit();
 }
 
-// Get existing video data
-$video = fetchOne("SELECT * FROM videos WHERE id = ?", [$video_id]);
-
-if (!$video) {
-    header('Location: videos.php');
-    exit();
-}
-
-// Handle form submission
+// Handle form submission BEFORE any HTML output
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = sanitize_input($_POST['title'] ?? '');
     $description = sanitize_input($_POST['description'] ?? '');
@@ -31,21 +28,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $category_name = sanitize_input($_POST['category_name'] ?? '');
     $is_active = isset($_POST['is_active']) ? 1 : 0;
     
-    // Handle thumbnail upload (only if new file provided)
-    $thumbnail = $video['thumbnail']; // Keep existing if no new file
+    $error = '';
     
+    // Handle thumbnail upload
+    $thumbnail = $video['thumbnail']; // Keep existing thumbnail if no new one uploaded
     if (isset($_FILES['thumbnail']) && $_FILES['thumbnail']['error'] === UPLOAD_ERR_OK) {
-        $upload_result = upload_file($_FILES['thumbnail'], UPLOAD_PATH . 'thumbnails/', ['jpg', 'jpeg', 'png', 'gif']);
+        $upload_result = upload_file($_FILES['thumbnail'], __DIR__ . '/../uploads/thumbnails/', ['jpg', 'jpeg', 'png', 'gif']);
         if ($upload_result['success']) {
             $thumbnail = 'uploads/thumbnails/' . $upload_result['filename'];
+        } else {
+            $error = $upload_result['message'];
         }
     }
     
-    // Validate required fields
-    if (empty($title) || empty($video_url)) {
-        $error = 'Title and video URL are required.';
-    } else {
-        // Update database
+    if (empty($error) && !empty($title) && !empty($video_url)) {
+        require_once __DIR__ . '/../includes/database.php';
+        
         $video_data = [
             'title' => $title,
             'description' => $description,
@@ -64,6 +62,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
+$page_title = 'Edit Video';
+require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../includes/database.php';
+
+// Get existing video data
+$video = fetchOne("SELECT * FROM videos WHERE id = ?", [$video_id]);
+
+if (!$video) {
+    header('Location: videos.php');
+    exit();
+}
+
 ?>
 
 <!DOCTYPE html>

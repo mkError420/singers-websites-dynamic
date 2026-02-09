@@ -25,7 +25,10 @@ require_once __DIR__ . '/functions.php';
     <meta name="twitter:image" content="<?php echo APP_URL; ?>/assets/images/og-image.jpg">
     
     <title><?php
-session_start();
+// Start session if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Check if user is logged in for admin panel
 if (strpos($_SERVER['REQUEST_URI'], '/admin/') !== false && !isset($_SESSION['user_id'])) {

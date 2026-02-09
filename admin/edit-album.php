@@ -1,10 +1,15 @@
 <?php
-require_once __DIR__ . '/../database.php';
-require_once __DIR__ . '/../functions.php';
+// Start session and check login first
+session_start();
 
-// Start secure session and require login
-start_secure_session();
-require_login();
+// Include functions for sanitize_input
+require_once __DIR__ . '/../includes/functions.php';
+
+// Simple authentication check
+if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
 
 // Get album name from URL
 $album_name = sanitize_input($_GET['album'] ?? '');
@@ -14,27 +19,42 @@ if (empty($album_name)) {
     exit();
 }
 
-// Get all songs from this album
-$songs_query = "SELECT * FROM songs WHERE album = ? AND is_active = TRUE ORDER BY created_at ASC";
-$songs = fetchAll($songs_query, [$album_name]);
-
-// Handle form submission for editing album
+// Handle form submission for editing album BEFORE any HTML output
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $new_album_name = sanitize_input($_POST['album_name'] ?? '');
     $new_artist = sanitize_input($_POST['artist'] ?? '');
     
-    if (!empty($new_album_name) && !empty($new_artist)) {
-        // Update all songs in this album
-        $update_query = "UPDATE songs SET album = ?, artist = ? WHERE album = ?";
-        $update_stmt = executeQuery($update_query, [$new_album_name, $new_artist, $album_name]);
-        
-        if ($update_stmt) {
-            $affected_rows = $update_stmt->rowCount();
-            header('Location: dashboard.php?album_updated=' . urlencode($new_album_name) . '&rows=' . $affected_rows);
-            exit();
+    $error_message = '';
+    
+    if (empty($new_album_name) || empty($new_artist)) {
+        $error_message = 'Album name and artist are required.';
+    } else {
+        try {
+            require_once __DIR__ . '/../includes/database.php';
+            // Update all songs in this album
+            $update_query = "UPDATE songs SET album = ?, artist = ? WHERE album = ?";
+            $update_stmt = executeQuery($update_query, [$new_album_name, $new_artist, $album_name]);
+            
+            if ($update_stmt) {
+                $affected_rows = $update_stmt->rowCount();
+                header('Location: albums.php?album_updated=' . urlencode($new_album_name) . '&rows=' . $affected_rows);
+                exit();
+            } else {
+                $error_message = 'Failed to update album. Please try again.';
+            }
+        } catch (Exception $e) {
+            $error_message = 'Database error: ' . $e->getMessage();
         }
     }
 }
+
+$page_title = 'Edit Album';
+require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../includes/database.php';
+
+// Get all songs from this album (only needed for displaying the form)
+$songs_query = "SELECT * FROM songs WHERE album = ? AND is_active = TRUE ORDER BY created_at ASC";
+$songs = fetchAll($songs_query, [$album_name]);
 ?>
 
 <!DOCTYPE html>
@@ -266,10 +286,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
             
-            <?php if (isset($_GET['album_updated'])): ?>
-                <div class="alert-success">
-                    Album "<?php echo xss_clean($_GET['album_updated']); ?>" updated successfully! 
-                    <?php echo $_GET['rows']; ?> songs affected.
+            <?php if (isset($error_message) && !empty($error_message)): ?>
+                <div class="alert-error" style="background: var(--error-color); color: white; padding: 1rem; border-radius: 8px; margin-bottom: 2rem;">
+                    <?php echo $error_message; ?>
                 </div>
             <?php endif; ?>
             
@@ -277,20 +296,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="form-group">
                     <label for="album_name">Album Name *</label>
                     <input type="text" id="album_name" name="album_name" class="form-control" required
-                           value="<?php echo xss_clean($album_name); ?>">
+                           value="<?php echo xss_clean($_POST['album_name'] ?? $album_name); ?>">
                 </div>
                 
                 <div class="form-group">
                     <label for="artist">Artist *</label>
                     <input type="text" id="artist" name="artist" class="form-control" required
-                           value="<?php echo xss_clean($songs[0]['artist'] ?? ''); ?>">
+                           value="<?php echo xss_clean($_POST['artist'] ?? ($songs[0]['artist'] ?? '')); ?>">
                 </div>
                 
                 <div class="form-actions">
                     <button type="submit" class="btn-submit">
                         <i class="fas fa-save"></i> Update Album
                     </button>
-                    <a href="dashboard.php" class="btn-cancel">
+                    <a href="albums.php" class="btn-cancel">
                         <i class="fas fa-times"></i> Cancel
                     </a>
                 </div>
