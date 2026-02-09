@@ -644,7 +644,7 @@ window.addEventListener('scroll', optimizedScroll);
 // Service Worker registration for PWA (optional)
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/sw.js')
+        navigator.serviceWorker.register('/website-singers/sw.js')
             .then(registration => {
                 console.log('SW registered: ', registration);
             })

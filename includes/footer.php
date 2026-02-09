@@ -55,14 +55,6 @@
     </div>
 </footer>
 
-<!-- Video Modal -->
-<div id="videoModal" class="video-modal" style="display: none;">
-    <div class="modal-content">
-        <span class="close-modal">&times;</span>
-        <iframe id="modalVideo" width="100%" height="500" frameborder="0" allowfullscreen></iframe>
-    </div>
-</div>
-
 <!-- JavaScript -->
 <script src="<?php echo APP_URL; ?>/assets/js/main.js"></script>
 

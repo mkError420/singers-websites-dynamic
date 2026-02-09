@@ -22,11 +22,25 @@ $latestVideos = get_videos(3); // Get last 3 videos of any type
 </section>
 
 <!-- Latest Music Section -->
-<section id="music" class="section">
+<section id="music" class="music-section">
     <div class="container">
-        <div class="section-title">
-            <h2>Latest Music</h2>
-            <p>Experience the newest sounds and melodies</p>
+        <div class="section-header">
+            <div class="header-content">
+                <h2 class="music-title">
+                    <span class="title-gradient">Latest Music</span>
+                    <div class="title-underline"></div>
+                </h2>
+                <p class="music-subtitle">
+                    <span class="subtitle-icon">🎵</span>
+                    Experience the newest sounds and melodies
+                    <span class="subtitle-icon">🎶</span>
+                </p>
+            </div>
+            <div class="header-decoration">
+                <div class="decoration-circle decoration-1"></div>
+                <div class="decoration-circle decoration-2"></div>
+                <div class="decoration-circle decoration-3"></div>
+            </div>
         </div>
         
         <div class="enhanced-music-player">
@@ -102,6 +116,212 @@ $latestVideos = get_videos(3); // Get last 3 videos of any type
 </section>
 
 <style>
+/* Latest Music Section Styles */
+.music-section {
+    padding: 5rem 0;
+    background: var(--dark-bg);
+    position: relative;
+    overflow: hidden;
+}
+
+.music-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 20%, rgba(255, 107, 107, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(78, 205, 196, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(69, 183, 209, 0.05) 0%, transparent 50%),
+        repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 10px,
+            rgba(255, 255, 255, 0.01) 10px,
+            rgba(255, 255, 255, 0.01) 20px
+        );
+    pointer-events: none;
+    z-index: 0;
+    animation: musicBackgroundShift 20s ease-in-out infinite;
+}
+
+.music-section::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: 
+        radial-gradient(circle at 30% 70%, rgba(255, 107, 107, 0.03) 0%, transparent 40%),
+        radial-gradient(circle at 70% 30%, rgba(78, 205, 196, 0.03) 0%, transparent 40%);
+    animation: musicRotateBackground 60s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes musicBackgroundShift {
+    0%, 100% { 
+        background-position: 0% 0%, 100% 100%, 50% 50%, 0% 0%;
+        opacity: 1;
+    }
+    50% { 
+        background-position: 100% 100%, 0% 0%, 100% 0%, 20px 20px;
+        opacity: 0.8;
+    }
+}
+
+@keyframes musicRotateBackground {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 4rem;
+    position: relative;
+    z-index: 1;
+}
+
+.header-content {
+    position: relative;
+    z-index: 2;
+}
+
+.music-title {
+    font-size: 3.5rem;
+    font-weight: 900;
+    margin-bottom: 1.5rem;
+    position: relative;
+    display: inline-block;
+}
+
+.music-title .title-gradient {
+    background: linear-gradient(135deg, #ff6b6b, #4ecdc4, #45b7d1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200% 200%;
+    animation: musicTitleGradient 4s ease-in-out infinite;
+    position: relative;
+}
+
+@keyframes musicTitleGradient {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.music-title .title-underline {
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 4px;
+    background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1);
+    border-radius: 2px;
+    animation: musicUnderlineGlow 3s ease-in-out infinite;
+}
+
+@keyframes musicUnderlineGlow {
+    0%, 100% { 
+        box-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
+        width: 100px;
+    }
+    50% { 
+        box-shadow: 0 0 30px rgba(78, 205, 196, 0.7);
+        width: 150px;
+    }
+}
+
+.music-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    font-weight: 400;
+    line-height: 1.6;
+}
+
+.subtitle-icon {
+    font-size: 1.5rem;
+    animation: musicIconFloat 3s ease-in-out infinite;
+}
+
+.subtitle-icon:first-child {
+    animation-delay: 0s;
+}
+
+.subtitle-icon:last-child {
+    animation-delay: 1.5s;
+}
+
+@keyframes musicIconFloat {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+}
+
+.header-decoration {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.decoration-circle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.1;
+    animation: musicFloat 6s ease-in-out infinite;
+}
+
+.decoration-1 {
+    width: 120px;
+    height: 120px;
+    background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+    top: 20%;
+    left: 10%;
+    animation-delay: 0s;
+}
+
+.decoration-2 {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #4ecdc4, #45b7d1);
+    top: 60%;
+    right: 15%;
+    animation-delay: 2s;
+}
+
+.decoration-3 {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #45b7d1, #ff6b6b);
+    bottom: 20%;
+    left: 20%;
+    animation-delay: 4s;
+}
+
+@keyframes musicFloat {
+    0%, 100% { 
+        transform: translateY(0px) rotate(0deg);
+        opacity: 0.1;
+    }
+    50% { 
+        transform: translateY(-20px) rotate(180deg);
+        opacity: 0.2;
+    }
+}
+
 /* Enhanced Music Player Styles - Simple & Small */
 .enhanced-music-player {
     background: var(--dark-secondary);
