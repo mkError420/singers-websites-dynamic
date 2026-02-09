@@ -31,11 +31,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $error = '';
     
     // Handle thumbnail upload
-    $thumbnail = $video['thumbnail']; // Keep existing thumbnail if no new one uploaded
+    $thumbnail = $video['thumbnail']; // Always show existing thumbnail by default
+    $thumbnail_changed = false; // Track if thumbnail was changed
+    
     if (isset($_FILES['thumbnail']) && $_FILES['thumbnail']['error'] === UPLOAD_ERR_OK) {
         $upload_result = upload_file($_FILES['thumbnail'], __DIR__ . '/../uploads/thumbnails/', ['jpg', 'jpeg', 'png', 'gif']);
         if ($upload_result['success']) {
-            $thumbnail = 'uploads/thumbnails/' . $upload_result['filename'];
+            $thumbnail = 'uploads/thumbnails/' . $upload_result['filename']; // Use NEW thumbnail if uploaded successfully
+            $thumbnail_changed = true; // Mark that thumbnail was changed
         } else {
             $error = $upload_result['message'];
         }

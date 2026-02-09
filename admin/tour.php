@@ -1,8 +1,19 @@
 <?php
+// Start session and check login first
+session_start();
+
+// Include functions for sanitize_input
+require_once __DIR__ . '/../includes/functions.php';
+
+// Simple authentication check
+if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
 $page_title = 'Manage Tour Dates';
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/database.php';
-require_once __DIR__ . '/../includes/functions.php';
 
 // Get all tour dates
 $all_tours = fetchAll("SELECT * FROM tour_dates ORDER BY event_date DESC");
@@ -33,13 +44,12 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
     $success_message = 'Tour date deleted successfully!';
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Tour Dates - Admin</title>
+    <title><?php echo $page_title; ?> - Admin</title>
     <link rel="stylesheet" href="<?php echo APP_URL; ?>/assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -92,14 +102,8 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
         
         .admin-content {
             flex: 1;
-            margin-left: 0;
             padding: 2rem;
-            background: transparent;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            background: var(--dark-bg);
         }
         
         .admin-header {
@@ -120,126 +124,65 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
             color: var(--text-secondary);
         }
         
-        .tour-table {
-            width: 100%;
-            max-width: 1000px;
-            margin: 0 auto;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), 0 5px 15px rgba(255, 107, 107, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
+        .admin-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
-        .tour-table::before {
+        .admin-card::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--primary-color));
-            background-size: 200% 100%;
-            animation: shimmerGradient 3s linear infinite;
+            bottom: 0;
+            background: linear-gradient(270deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+            border-radius: 20px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: shimmerGradient 4s linear infinite;
         }
         
-        .tour-table table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .tour-table th {
-            background: rgba(0, 0, 0, 0.3);
+        .admin-card h3 {
             color: var(--text-primary);
-            padding: 1rem 1.5rem;
-            text-align: left;
-            font-weight: 600;
-            font-size: 0.95rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .tour-table td {
-            padding: 1.2rem 1rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            color: var(--text-secondary);
-            transition: all 0.3s ease;
-        }
-        
-        .tour-table tbody tr:hover {
-            background: rgba(255, 107, 107, 0.05);
-        }
-        
-        .tour-table tbody tr:hover td {
-            color: var(--text-primary);
-        }
-        
-        .tour-table tr:hover {
-            background: var(--dark-tertiary);
-        }
-        
-        .tour-actions {
+            margin-bottom: 1.5rem;
             display: flex;
+            align-items: center;
             gap: 0.5rem;
         }
         
-        .btn-sm {
-            padding: 0.5rem 1rem;
-            font-size: 0.9rem;
-            border-radius: 5px;
-            text-decoration: none;
-            display: inline-block;
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--dark-secondary);
+            border-radius: 10px;
+            overflow: hidden;
         }
         
-        .btn-edit {
-            background: var(--primary-color);
+        .admin-table th {
+            background: var(--dark-tertiary);
             color: var(--text-primary);
-        }
-        
-        .btn-delete {
-            background: var(--error-color);
-            color: white;
-        }
-        
-        .add-tour-btn {
-            background: var(--primary-color);
-            color: var(--text-primary);
-            padding: 1rem 2rem;
-            border: none;
-            border-radius: 8px;
-            text-decoration: none;
-            display: inline-block;
-            margin-bottom: 2rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        
-        .add-tour-btn:hover {
-            background: var(--secondary-color);
-            transform: translateY(-2px);
-        }
-        
-        .alert-success {
-            background: var(--success-color);
-            color: white;
             padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 2rem;
+            text-align: left;
+            font-weight: 600;
         }
         
-        .no-tours {
-            text-align: center;
-            padding: 3rem;
-            color: var(--text-muted);
+        .admin-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .admin-table tr:last-child td {
+            border-bottom: none;
         }
         
         .tour-status {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 15px;
+            padding: 0.25rem 0.5rem;
+            border-radius: 20px;
             font-size: 0.8rem;
-            font-weight: 500;
+            font-weight: 600;
         }
         
         .tour-status.upcoming {
@@ -252,13 +195,154 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
             color: var(--text-primary);
         }
         
-        .ticket-link {
-            color: var(--primary-color);
-            text-decoration: none;
+        .tour-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
         }
         
-        .ticket-link:hover {
-            color: var(--secondary-color);
+        .tour-actions a {
+            padding: 0.5rem 1rem;
+            color: var(--text-primary);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .tour-actions a:hover {
+            background: var(--dark-tertiary);
+            color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+        
+        .btn-edit {
+            background: var(--primary-color);
+            color: var(--text-primary);
+        }
+        
+        .btn-delete {
+            background: var(--error-color);
+            color: var(--text-primary);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .add-tour-btn {
+            display: inline-block;
+            background: var(--primary-color);
+            color: var(--text-primary);
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            margin-top: 2rem;
+        }
+        
+        .add-tour-btn:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .no-tours {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+        
+        .no-tours h3 {
+            margin-bottom: 1rem;
+        }
+        
+        .no-tours p {
+            margin-bottom: 1rem;
+        }
+        
+        .map-container {
+            margin-top: 1rem;
+        }
+        
+        .map-container iframe {
+            border: 0;
+            border-radius: 8px;
+        }
+        
+        .map-info {
+            margin-top: 1rem;
+            text-align: center;
+        }
+        
+        .map-info p {
+            margin-bottom: 0.5rem;
+        }
+        
+        .map-info strong {
+            color: var(--primary-color);
+        }
+        
+        .alert-success {
+            background: var(--success-color);
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        
+        .activity-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .activity-item {
+            background: var(--dark-secondary);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .activity-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .activity-title {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        
+        .activity-meta {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .activity-date {
+            color: var(--primary-color);
+            font-weight: 600;
         }
     </style>
 </head>
@@ -273,8 +357,9 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
             
             <nav>
                 <ul class="admin-nav">
-                    <li><a href="dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="dashboard.php" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
                     <li><a href="songs.php"><i class="fas fa-music"></i> Songs</a></li>
+                    <li><a href="albums.php"><i class="fas fa-compact-disc"></i> Albums</a></li>
                     <li><a href="videos.php"><i class="fas fa-video"></i> Videos</a></li>
                     <li><a href="tour.php" class="active"><i class="fas fa-calendar-alt"></i> Tour Dates</a></li>
                     <li><a href="messages.php"><i class="fas fa-envelope"></i> Messages</a></li>
@@ -306,14 +391,16 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
             </a>
             
             <?php if (!empty($all_tours)): ?>
-                <div class="tour-table">
-                    <table>
+                <div class="admin-card">
+                    <h3>All Tour Dates</h3>
+                    <table class="admin-table">
                         <thead>
                             <tr>
                                 <th>Event Name</th>
                                 <th>Venue</th>
                                 <th>Location</th>
                                 <th>Date</th>
+                                <th>Time</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -324,13 +411,13 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
                                     <td>
                                         <strong><?php echo xss_clean($tour['event_name']); ?></strong>
                                         <?php if ($tour['is_active']): ?>
-                                            <span style="color: var(--success-color);">●</span>
+                                            <span class="tour-status upcoming">●</span>
                                         <?php else: ?>
-                                            <span style="color: var(--text-muted);">○</span>
+                                            <span class="tour-status past">○</span>
                                         <?php endif; ?>
                                     </td>
                                     <td><?php echo xss_clean($tour['venue']); ?></td>
-                                    <td><?php echo xss_clean($tour['city'] . ', ' . $tour['country']); ?></td>
+                                    <td><?php echo xss_clean($tour['city']) . ', ' . xss_clean($tour['country']); ?></td>
                                     <td>
                                         <?php echo format_date($tour['event_date'], 'M j, Y'); ?>
                                         <?php if ($tour['event_time']): ?>
@@ -339,14 +426,14 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
                                     </td>
                                     <td>
                                         <?php 
-                                        $tour_date = new DateTime($tour['event_date']);
-                                        $today = new DateTime();
-                                        if ($tour_date >= $today): ?>
-                                            <span class="tour-status upcoming">Upcoming</span>
-                                        <?php else: ?>
-                                            <span class="tour-status past">Past</span>
-                                        <?php endif; ?>
-                                    </td>
+                                            $tour_date = new DateTime($tour['event_date']);
+                                            $today = new DateTime();
+                                            if ($tour_date >= $today): ?>
+                                                <span class="tour-status upcoming">Upcoming</span>
+                                            <?php else: ?>
+                                                <span class="tour-status past">Past</span>
+                                            <?php endif; ?>
+                                        </td>
                                     <td>
                                         <div class="tour-actions">
                                             <a href="edit-tour.php?id=<?php echo $tour['id']; ?>" class="btn-sm btn-edit">
@@ -375,6 +462,32 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
                     </a>
                 </div>
             <?php endif; ?>
+            
+            <!-- Bangladesh Tour Map -->
+            <div class="admin-card">
+                <h3>Tour Map - Bangladesh</h3>
+                <div class="tour-map-container">
+                    <iframe 
+                            src="https://www.google.com/maps?q=<?php echo urlencode($tour['venue'] . ', ' . urlencode($tour['city']) . ', ' . urlencode($tour['country'])); ?>&z=12&zoom=6&language=en&t=<?php echo time(); ?>"
+                            width="100%" 
+                            height="400" 
+                            style="border:0; border-radius:8px;"
+                            allowfullscreen
+                            sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen>
+                    </iframe>
+                    <div class="map-info">
+                        <p><small>Interactive map showing tour locations across Bangladesh</small></p>
+                        <p><strong>Major Cities:</strong> Dhaka, Chittagong, Khulna, Rajshahi, Sylhet, Barisal, Rangpur</p>
+                        <p><strong>Tourist Areas:</strong> Cox's Bazar, Saint Martin, Bandarban, Rangamati</p>
+                        <p><strong>Historical Sites:</strong> Lalbagh Fort, Paharpur, Mahasthangarh</p>
+                        <p><strong>Current Tour:</strong> <span style="color: var(--success-color); font-weight: bold;"><?php echo xss_clean($tour['event_name']); ?> - <?php echo xss_clean($tour['venue']); ?></span></p>
+                        <p><a href="https://www.google.com/maps/place/Bangladesh" target="_blank">🗺️ View Full Bangladesh Map</a></p>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 </body>

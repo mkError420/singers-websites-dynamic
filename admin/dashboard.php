@@ -717,6 +717,36 @@ $upcoming_tours = fetchAll("SELECT * FROM tour_dates WHERE event_date >= CURDATE
                     <?php endif; ?>
                 </ul>
             </div>
+            
+            <!-- Past Tour Dates -->
+            <div class="dashboard-card">
+                <h3>Past Tour Dates</h3>
+                    <a href="tour.php" class="view-all">View All</a>
+                <ul class="activity-list">
+                    <?php 
+                    // Get past tour dates (events that have already occurred)
+                    $past_tours = fetchAll("SELECT * FROM tour_dates WHERE event_date < CURDATE() ORDER BY event_date DESC LIMIT 5");
+                    
+                    if (!empty($past_tours)): ?>
+                        <?php foreach ($past_tours as $tour): ?>
+                            <li class="activity-item">
+                                <div class="activity-info">
+                                    <div class="activity-title"><?php echo xss_clean($tour['event_name']); ?></div>
+                                    <div class="activity-meta"><?php echo xss_clean($tour['venue']) ?> • <?php echo xss_clean($tour['city']); ?></div>
+                                    <div class="activity-date"><?php echo format_date($tour['event_date'], 'M j, Y'); ?></div>
+                                </div>
+                            </li>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <li class="activity-item">
+                            <div class="activity-info">
+                                <div class="activity-title">No past tour dates</div>
+                                <div class="activity-meta">Tour history will appear here</div>
+                            </div>
+                        </li>
+                    <?php endif; ?>
+                </ul>
+            </div>
         </main>
     </div>
 </body>
