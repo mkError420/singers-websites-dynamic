@@ -1,21 +1,56 @@
 <?php
-require_once __DIR__ . '/../includes/header.php';
+session_start();
 require_once __DIR__ . '/../includes/database.php';
 require_once __DIR__ . '/../includes/functions.php';
 
-// Start secure session and require login
-start_secure_session();
-require_login();
+// Simple authentication check
+if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
+// Check if gallery table exists, create if not
+try {
+    $gallery_table_check = fetchAll("SHOW TABLES LIKE 'gallery'");
+    if (empty($gallery_table_check)) {
+        // Create gallery table
+        $create_table_sql = "CREATE TABLE gallery (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(255) NOT NULL,
+            description TEXT,
+            image_url VARCHAR(500) NOT NULL,
+            thumbnail_url VARCHAR(500),
+            category VARCHAR(100) DEFAULT 'general',
+            tags VARCHAR(500),
+            is_active BOOLEAN DEFAULT TRUE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX idx_category (category),
+            INDEX idx_active (is_active),
+            INDEX idx_created_at (created_at)
+        )";
+        executeQuery($create_table_sql);
+    }
+} catch (Exception $e) {
+    // Continue even if table creation fails
+    error_log("Gallery table check failed: " . $e->getMessage());
+}
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action'])) {
         switch ($_POST['action']) {
             case 'add':
-                $title = $_POST['title'];
-                $description = $_POST['description'];
-                $category = $_POST['category'];
-                $tags = $_POST['tags'];
+                $title = $_POST['title'] ?? '';
+                $description = $_POST['description'] ?? '';
+                $category = $_POST['category'] ?? '';
+                $tags = ''; // Tags field removed from form
+                
+                // Validate required fields
+                if (empty($title) || empty($category)) {
+                    $error_message = "Title and Category are required fields!";
+                    break;
+                }
                 
                 // Handle image upload
                 $image_url = '';
@@ -37,18 +72,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $target_file = $upload_dir . $file_name;
                     $thumbnail_file = $thumbnail_dir . 'thumb_' . $file_name;
                     
+                    error_log("Upload target: " . $target_file);
+                    error_log("Upload directory exists: " . (file_exists($upload_dir) ? 'Yes' : 'No'));
+                    
                     if (move_uploaded_file($_FILES['image']['tmp_name'], $target_file)) {
                         $image_url = 'uploads/gallery/' . $file_name;
                         
+                        error_log("File uploaded successfully. Image URL: " . $image_url);
+                        error_log("File exists at: " . (file_exists($target_file) ? 'Yes' : 'No'));
+                        
                         // Create thumbnail (simple resize)
                         createThumbnail($target_file, $thumbnail_file, 300, 200);
-                        $thumbnail_url = 'uploads/gallery/thumbnails/thumb_' . $file_name;
+                        if (file_exists($thumbnail_file)) {
+                            $thumbnail_url = 'uploads/gallery/thumbnails/thumb_' . $file_name;
+                            error_log("Thumbnail created: " . $thumbnail_url);
+                        } else {
+                            $thumbnail_url = $image_url; // Use original if thumbnail fails
+                            error_log("Thumbnail failed, using original: " . $thumbnail_url);
+                        }
+                    } else {
+                        $error_message = "Failed to upload image file!";
+                        error_log("File upload failed!");
+                        break;
                     }
+                } else {
+                    $error_message = "Please select an image file!";
+                    break;
                 }
                 
-                if (add_gallery_image($title, $description, $image_url, $thumbnail_url, $category, $tags)) {
+                // Add to database
+                error_log("Adding to database: " . print_r([
+                    'title' => $title,
+                    'description' => $description,
+                    'image_url' => $image_url,
+                    'thumbnail_url' => $thumbnail_url,
+                    'category' => $category,
+                    'tags' => $tags
+                ], true));
+                
+                $result = add_gallery_image($title, $description, $image_url, $thumbnail_url, $category, $tags);
+                
+                error_log("Database insert result: " . ($result ? 'Success' : 'Failed'));
+                
+                if ($result) {
                     header('Location: gallery.php?success=added');
                     exit;
+                } else {
+                    $error_message = "Failed to save image to database!";
                 }
                 break;
                 
@@ -57,7 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $title = $_POST['title'];
                 $description = $_POST['description'];
                 $category = $_POST['category'];
-                $tags = $_POST['tags'];
+                $tags = ''; // Tags field removed from form
                 $is_active = isset($_POST['is_active']);
                 
                 if (update_gallery_image($id, $title, $description, $category, $tags, $is_active)) {
@@ -75,6 +145,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 break;
         }
     }
+}
+
+// Handle GET request for edit data
+if (isset($_GET['action']) && $_GET['action'] === 'get' && isset($_GET['id'])) {
+    $image_id = $_GET['id'];
+    error_log("Fetching image data for ID: " . $image_id);
+    
+    $image = get_gallery_image_by_id($image_id);
+    
+    if ($image) {
+        error_log("Image data found: " . print_r($image, true));
+        header('Content-Type: application/json');
+        echo json_encode($image);
+    } else {
+        error_log("No image found for ID: " . $image_id);
+        header('Content-Type: application/json');
+        echo json_encode(['error' => 'Image not found']);
+    }
+    exit;
 }
 
 // Get gallery data
@@ -95,8 +184,26 @@ if ($search) {
 $categories = get_gallery_categories();
 $total_pages = ceil($total_images / $per_page);
 
+// Debug: Show gallery data information
+error_log("Gallery Images Count: " . count($gallery_images));
+error_log("Total Images: " . $total_images);
+error_log("Category: " . $category);
+error_log("Search: " . $search);
+if (!empty($gallery_images)) {
+    error_log("First image data: " . print_r($gallery_images[0], true));
+}
+
 // Helper function to create thumbnails
 function createThumbnail($source, $destination, $width, $height) {
+    // Check if GD library is available
+    if (!extension_loaded('gd') || !function_exists('imagecreatetruecolor')) {
+        // If GD is not available, just copy the original file
+        if (file_exists($source)) {
+            return copy($source, $destination);
+        }
+        return false;
+    }
+    
     $info = getimagesize($source);
     if (!$info) return false;
     
@@ -112,30 +219,58 @@ function createThumbnail($source, $destination, $width, $height) {
             $source_image = imagecreatefromgif($source);
             break;
         default:
-            return false;
+            // If image type is not supported, just copy the file
+            return copy($source, $destination);
     }
     
-    if (!$source_image) return false;
+    if (!$source_image) {
+        // If image creation fails, just copy the file
+        return copy($source, $destination);
+    }
     
     $thumb = imagecreatetruecolor($width, $height);
+    if (!$thumb) {
+        imagedestroy($source_image);
+        return copy($source, $destination);
+    }
+    
+    // Handle transparency for PNG and GIF
+    if ($type == IMAGETYPE_PNG || $type == IMAGETYPE_GIF) {
+        imagealphablending($thumb, false);
+        imagesavealpha($thumb, true);
+        $transparent = imagecolorallocatealpha($thumb, 255, 255, 255, 127);
+        imagefilledrectangle($thumb, 0, 0, $width, $height, $transparent);
+    }
+    
     imagecopyresampled($thumb, $source_image, 0, 0, 0, 0, $width, $height, $info[0], $info[1]);
     
+    $result = false;
     switch ($type) {
         case IMAGETYPE_JPEG:
-            imagejpeg($thumb, $destination, 85);
+            $result = imagejpeg($thumb, $destination, 85);
             break;
         case IMAGETYPE_PNG:
-            imagepng($thumb, $destination, 8);
+            $result = imagepng($thumb, $destination, 8);
             break;
         case IMAGETYPE_GIF:
-            imagegif($thumb, $destination);
+            $result = imagegif($thumb, $destination);
             break;
+        default:
+            $result = false;
     }
     
     imagedestroy($source_image);
     imagedestroy($thumb);
-    return true;
+    
+    // If thumbnail creation failed, copy the original file
+    if (!$result && file_exists($source)) {
+        return copy($source, $destination);
+    }
+    
+    return $result;
 }
+
+require_once __DIR__ . '/../includes/header.php';
 ?>
 
 <!DOCTYPE html>
@@ -225,6 +360,7 @@ function createThumbnail($source, $destination, $width, $height) {
             flex: 1;
             margin-left: 250px;
             padding: 2rem;
+            padding-top: 5rem;
             background: var(--dark-bg);
             min-height: 100vh;
             display: block;
@@ -538,7 +674,7 @@ function createThumbnail($source, $destination, $width, $height) {
             </div>
             
             <?php if (isset($_GET['success'])): ?>
-                <div class="alert alert-success">
+                <div class="alert alert-success" id="success-message">
                     <?php
                     switch ($_GET['success']) {
                         case 'added':
@@ -552,6 +688,25 @@ function createThumbnail($source, $destination, $width, $height) {
                             break;
                     }
                     ?>
+                </div>
+                <script>
+                    // Auto-hide success message after 4 seconds
+                    setTimeout(function() {
+                        const successMsg = document.getElementById('success-message');
+                        if (successMsg) {
+                            successMsg.style.transition = 'opacity 0.5s';
+                            successMsg.style.opacity = '0';
+                            setTimeout(function() {
+                                successMsg.style.display = 'none';
+                            }, 500);
+                        }
+                    }, 4000);
+                </script>
+            <?php endif; ?>
+            
+            <?php if (isset($error_message)): ?>
+                <div class="alert alert-danger" style="background: var(--error-color); color: white; padding: 1rem; border-radius: 10px; margin-bottom: 2rem;">
+                    <?php echo $error_message; ?>
                 </div>
             <?php endif; ?>
             
@@ -584,12 +739,40 @@ function createThumbnail($source, $destination, $width, $height) {
             
             <!-- Gallery Grid -->
             <div class="gallery-grid">
-                <?php if (!empty($gallery_images)): ?>
+                <?php 
+                // Debug: Show if images are found
+                error_log("Displaying gallery grid. Images count: " . count($gallery_images));
+                
+                if (!empty($gallery_images)): ?>
                     <?php foreach ($gallery_images as $image): ?>
+                        <?php 
+                        // Debug: Show individual image data
+                        error_log("Displaying image: " . $image['title'] . " - URL: " . ($image['thumbnail_url'] ?: $image['image_url']));
+                        ?>
                         <div class="gallery-item">
-                            <img src="<?php echo htmlspecialchars($image['thumbnail_url'] ?: $image['image_url']); ?>" 
+                            <?php 
+                            $image_path = $image['thumbnail_url'] ?: $image['image_url'];
+                            // Try different path variations
+                            $possible_paths = [
+                                $image_path,
+                                '../' . $image_path,
+                                APP_URL . '/' . $image_path
+                            ];
+                            
+                            $display_path = $image_path; // default
+                            foreach ($possible_paths as $path) {
+                                if (file_exists($path)) {
+                                    $display_path = $path;
+                                    break;
+                                }
+                            }
+                            
+                            error_log("Image display paths - Original: $image_path, Display: $display_path");
+                            ?>
+                            <img src="<?php echo htmlspecialchars($display_path); ?>" 
                                  alt="<?php echo htmlspecialchars($image['title']); ?>"
-                                 class="gallery-image">
+                                 class="gallery-image"
+                                 onerror="console.error('Image failed to load: <?php echo htmlspecialchars($display_path); ?>'); this.style.display='none';">
                             <div class="gallery-info">
                                 <h3 class="gallery-title"><?php echo htmlspecialchars($image['title']); ?></h3>
                                 <div class="gallery-meta">
@@ -599,7 +782,7 @@ function createThumbnail($source, $destination, $width, $height) {
                                     </span>
                                 </div>
                                 <div class="gallery-actions">
-                                    <button class="btn btn-sm" onclick="openEditModal(<?php echo $image['id']; ?>)">
+                                    <button class="btn btn-sm" onclick="console.log('Edit button clicked for ID: <?php echo $image['id']; ?>'); openEditModal(<?php echo $image['id']; ?>)">
                                         <i class="fas fa-edit"></i> Edit
                                     </button>
                                     <button class="btn btn-danger btn-sm" onclick="deleteImage(<?php echo $image['id']; ?>)">
@@ -614,6 +797,7 @@ function createThumbnail($source, $destination, $width, $height) {
                         <i class="fas fa-images" style="font-size: 3rem; margin-bottom: 1rem;"></i>
                         <h3>No gallery images found</h3>
                         <p><?php echo $search ? 'Try adjusting your search terms' : 'Upload your first image to get started'; ?></p>
+                        <p><small>Debug: Total images in database: <?php echo $total_images; ?></small></p>
                     </div>
                 <?php endif; ?>
             </div>
@@ -671,11 +855,6 @@ function createThumbnail($source, $destination, $width, $height) {
                 </div>
                 
                 <div class="form-group">
-                    <label for="tags">Tags (comma separated)</label>
-                    <input type="text" id="tags" name="tags" class="form-control" placeholder="concert, live, performance">
-                </div>
-                
-                <div class="form-group">
                     <label for="image">Image *</label>
                     <input type="file" id="image" name="image" class="form-control" accept="image/*" required>
                 </div>
@@ -718,11 +897,6 @@ function createThumbnail($source, $destination, $width, $height) {
                 </div>
                 
                 <div class="form-group">
-                    <label for="editTags">Tags (comma separated)</label>
-                    <input type="text" id="editTags" name="tags" class="form-control">
-                </div>
-                
-                <div class="form-group">
                     <div class="checkbox-group">
                         <input type="checkbox" id="editActive" name="is_active">
                         <label for="editActive">Active</label>
@@ -740,16 +914,31 @@ function createThumbnail($source, $destination, $width, $height) {
         }
         
         function openEditModal(id) {
+            console.log('Opening edit modal for ID:', id);
             fetch(`gallery.php?action=get&id=${id}`)
-                .then(response => response.json())
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
                 .then(data => {
-                    document.getElementById('editId').value = data.id;
-                    document.getElementById('editTitle').value = data.title;
-                    document.getElementById('editDescription').value = data.description;
-                    document.getElementById('editCategory').value = data.category;
-                    document.getElementById('editTags').value = data.tags;
-                    document.getElementById('editActive').checked = data.is_active;
-                    document.getElementById('editModal').style.display = 'block';
+                    console.log('Received data:', data);
+                    if (data && data.id) {
+                        document.getElementById('editId').value = data.id;
+                        document.getElementById('editTitle').value = data.title || '';
+                        document.getElementById('editDescription').value = data.description || '';
+                        document.getElementById('editCategory').value = data.category || '';
+                        document.getElementById('editActive').checked = data.is_active || false;
+                        document.getElementById('editModal').style.display = 'block';
+                    } else {
+                        alert('Error: No data received for this image');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching image data:', error);
+                    alert('Error loading image data. Please try again.');
                 });
         }
         
@@ -774,19 +963,6 @@ function createThumbnail($source, $destination, $width, $height) {
         window.onclick = function(event) {
             if (event.target.classList.contains('modal')) {
                 event.target.style.display = 'none';
-            }
-        }
-        
-        // Handle GET request for edit data
-        if (window.location.search.includes('action=get')) {
-            const params = new URLSearchParams(window.location.search);
-            const id = params.get('id');
-            
-            if (id) {
-                $image = get_gallery_image_by_id($id);
-                header('Content-Type: application/json');
-                echo json_encode($image);
-                exit;
             }
         }
     </script>

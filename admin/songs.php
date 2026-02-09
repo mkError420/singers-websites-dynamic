@@ -4,9 +4,6 @@ require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/database.php';
 require_once __DIR__ . '/../includes/functions.php';
 
-// Get all songs
-$songs = fetchAll("SELECT * FROM songs ORDER BY created_at DESC");
-
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
@@ -20,7 +17,95 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
+// Handle search
+$search_query = '';
+if (isset($_GET['search'])) {
+    $search_query = trim($_GET['search']);
+}
+
+// Get songs with search filter
+if ($search_query) {
+    $songs = fetchAll("SELECT * FROM songs WHERE title LIKE ? ORDER BY created_at DESC", ['%' . $search_query . '%']);
+} else {
+    $songs = fetchAll("SELECT * FROM songs ORDER BY created_at DESC");
+}
 ?>
+<style>
+    .search-container {
+        margin-bottom: 2rem;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    
+    .search-form {
+        display: flex;
+        gap: 0.5rem;
+        flex: 1;
+        max-width: 400px;
+    }
+    
+    .search-input {
+        flex: 1;
+        padding: 0.75rem 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-primary);
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+    
+    .search-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        background: rgba(255, 255, 255, 0.08);
+    }
+    
+    .search-input::placeholder {
+        color: var(--text-muted);
+    }
+    
+    .search-btn {
+        padding: 0.75rem 1.5rem;
+        background: var(--primary-color);
+        color: var(--text-primary);
+        border: none;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+    
+    .search-btn:hover {
+        background: var(--secondary-color);
+        transform: translateY(-1px);
+    }
+    
+    .clear-search {
+        padding: 0.75rem 1rem;
+        background: transparent;
+        color: var(--text-secondary);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    
+    .clear-search:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-primary);
+    }
+    
+    .admin-header {
+        margin-top: 2rem;
+    }
+</style>
 
 <body>
     <div class="admin-container">
@@ -44,9 +129,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
             
-            <a href="add-song.php" class="btn">
-                <i class="fas fa-plus"></i> Add New Song
-            </a>
+            <div class="search-container">
+                <form method="GET" class="search-form">
+                    <input type="text" 
+                           name="search" 
+                           class="search-input" 
+                           placeholder="Search songs by name..." 
+                           value="<?php echo htmlspecialchars($search_query); ?>">
+                    <button type="submit" class="search-btn">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </form>
+                
+                <?php if ($search_query): ?>
+                    <a href="songs.php" class="clear-search">
+                        <i class="fas fa-times"></i> Clear
+                    </a>
+                <?php endif; ?>
+                
+                <a href="add-song.php" class="btn">
+                    <i class="fas fa-plus"></i> Add New Song
+                </a>
+            </div>
+            
+            <?php if ($search_query): ?>
+                <div style="margin-bottom: 1rem; color: var(--text-secondary);">
+                    <i class="fas fa-info-circle"></i> 
+                    Showing results for: <strong><?php echo htmlspecialchars($search_query); ?></strong>
+                    (<?php echo count($songs); ?> songs found)
+                </div>
+            <?php endif; ?>
             
             <?php if (isset($_GET['deleted'])): ?>
                 <div class="alert alert-success">

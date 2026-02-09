@@ -103,6 +103,7 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
         .admin-content {
             flex: 1;
             padding: 2rem;
+            padding-top: 4rem;
             background: var(--dark-bg);
         }
         

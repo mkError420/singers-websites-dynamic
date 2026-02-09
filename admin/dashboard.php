@@ -690,6 +690,46 @@ $upcoming_tours = fetchAll("SELECT * FROM tour_dates WHERE event_date >= CURDATE
                 </div>
             </div>
             
+            <!-- Gallery Section -->
+            <div class="dashboard-card">
+                <h3>
+                    Gallery
+                    <a href="gallery.php" class="view-all">View All</a>
+                </h3>
+                <?php 
+                    // Get recent gallery images
+                    $recent_gallery = fetchAll("SELECT * FROM gallery WHERE is_active = 1 ORDER BY created_at DESC LIMIT 3");
+                ?>
+                <div class="gallery-preview">
+                    <?php if (!empty($recent_gallery)): ?>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1rem;">
+                            <?php foreach ($recent_gallery as $image): ?>
+                                <div style="text-align: center;">
+                                    <?php if ($image['thumbnail_url']): ?>
+                                        <img src="<?php echo APP_URL . '/' . $image['thumbnail_url']; ?>" 
+                                             alt="<?php echo xss_clean($image['title']); ?>" 
+                                             style="width: 100%; height: 80px; object-fit: cover; border-radius: 8px; margin-bottom: 0.5rem;">
+                                    <?php endif; ?>
+                                    <div style="font-size: 0.8rem; color: var(--text-secondary);">
+                                        <?php echo xss_clean($image['title']); ?>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php else: ?>
+                        <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                            <i class="fas fa-images" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                            <div>No gallery images yet</div>
+                        </div>
+                    <?php endif; ?>
+                </div>
+                <div style="text-align: center; margin-top: 1rem;">
+                    <a href="gallery.php" class="btn" style="background: var(--primary-color); color: var(--text-primary); padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.3s ease;">
+                        <i class="fas fa-plus"></i> Add Image
+                    </a>
+                </div>
+            </div>
+            
             <!-- Upcoming Tour Dates -->
             <div class="dashboard-card">
                 <h3>
@@ -746,141 +786,6 @@ $upcoming_tours = fetchAll("SELECT * FROM tour_dates WHERE event_date >= CURDATE
                         </li>
                     <?php endif; ?>
                 </ul>
-            </div>
-        </main>
-    </div>
-</body>
-</html>
-            color: var(--text-secondary);
-            margin-bottom: 1rem;
-        }
-        
-        .album-actions {
-            display: flex;
-            gap: 0.5rem;
-            justify-content: center;
-        }
-        
-        .album-actions .btn-sm {
-            padding: 0.4rem 0.8rem;
-            font-size: 0.85rem;
-            text-decoration: none;
-        }
-        
-        .album-actions .btn-primary {
-            background: var(--primary-color);
-            color: var(--text-primary);
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .album-actions .btn-primary:hover {
-            background: var(--secondary-color);
-        }
-        
-        .album-actions .btn-danger {
-            background: var(--error-color);
-            color: var(--text-primary);
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .album-actions .btn-danger:hover {
-            background: #c62828;
-        }
-        
-        @media (max-width: 768px) {
-            .admin-container {
-                flex-direction: column;
-            }
-            
-            .admin-sidebar {
-                width: 100%;
-                padding: 1rem 0;
-            }
-            
-            .admin-nav {
-                display: flex;
-                overflow-x: auto;
-                padding: 0 1rem;
-            }
-            
-            .admin-nav li {
-                margin: 0;
-                margin-right: 0.5rem;
-            }
-            
-            .admin-nav a {
-                white-space: nowrap;
-            }
-            
-            .admin-content {
-                padding: 1rem;
-            }
-            
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 1rem;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="admin-container">
-        <!-- Sidebar -->
-        <aside class="admin-sidebar">
-            <div class="admin-logo">
-                <h2><?php echo APP_NAME; ?></h2>
-                <small>Admin Panel</small>
-            </div>
-            
-            <nav>
-                <ul class="admin-nav">
-                    <li><a href="dashboard.php" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                    <li><a href="songs.php"><i class="fas fa-music"></i> Songs</a></li>
-                    <li><a href="albums.php"><i class="fas fa-compact-disc"></i> Albums</a></li>
-                    <li><a href="videos.php"><i class="fas fa-video"></i> Videos</a></li>
-                    <li><a href="tour.php"><i class="fas fa-calendar-alt"></i> Tour Dates</a></li>
-                    <li><a href="messages.php"><i class="fas fa-envelope"></i> Messages <span style="background: var(--error-color); color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.8rem;"><?php echo $total_messages; ?></span></a></li>
-                    <li><a href="subscribers.php"><i class="fas fa-users"></i> Subscribers</a></li>
-                    <li><a href="settings.php"><i class="fas fa-cog"></i> Settings</a></li>
-                    <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-                </ul>
-            </nav>
-        </aside>
-        
-        <!-- Main Content -->
-        <main class="admin-content">
-            <div class="admin-header">
-                <h1>Admin Dashboard</h1>
-                <div class="admin-user">
-                    <span>Welcome, <?php echo $_SESSION['username']; ?></span>
-                    <i class="fas fa-user-circle"></i>
-                </div>
-            </div>
-            
-            <!-- Statistics Cards -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-video"></i></div>
-                    <div class="stat-number"><?php echo $total_videos; ?></div>
-                    <div class="stat-label">Total Videos</div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
-                    <div class="stat-number"><?php echo $total_tour_dates; ?></div>
-                    <div class="stat-label">Subscribers</div>
-                </div>
-                    </div>
             </div>
         </main>
     </div>
