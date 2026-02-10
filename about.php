@@ -2,6 +2,21 @@
 require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/includes/database.php';
 require_once __DIR__ . '/includes/functions.php';
+
+// Get profile data from database
+$profile = fetchOne("SELECT * FROM profile WHERE status = 'active' ORDER BY id DESC LIMIT 1");
+if (!$profile) {
+    // Fallback to default values
+    $profile = [
+        'profile_image' => 'assets/images/artist-photo.jpg',
+        'artist_name' => APP_NAME,
+        'tagline' => 'Musician, Songwriter, Storyteller',
+        'bio' => 'From humble beginnings to international stages, my journey has been driven by a passion for creating music that speaks to the soul. Every song tells a story, every melody carries emotion, and every performance is an opportunity to connect with amazing people like you.',
+        'years_experience' => '10+',
+        'songs_count' => '50+',
+        'views_count' => '1M+'
+    ];
+}
 ?>
 
 <!-- About Section -->
@@ -29,25 +44,25 @@ require_once __DIR__ . '/includes/functions.php';
         <!-- Hero About -->
         <div class="about-hero">
             <div class="about-image">
-                <img src="assets/images/artist-photo.jpg" alt="<?php echo APP_NAME; ?>" class="artist-photo">
+                <img src="<?php echo APP_URL . '/' . $profile['profile_image']; ?>" alt="<?php echo htmlspecialchars($profile['artist_name']); ?>" class="artist-photo">
             </div>
             <div class="about-content">
-                <h3><?php echo APP_NAME; ?></h3>
-                <p class="artist-tagline">Musician, Songwriter, Storyteller</p>
+                <h3><?php echo htmlspecialchars($profile['artist_name']); ?></h3>
+                <p class="artist-tagline"><?php echo htmlspecialchars($profile['tagline']); ?></p>
                 <p class="artist-bio">
-                    From humble beginnings to international stages, my journey has been driven by a passion for creating music that speaks to the soul. Every song tells a story, every melody carries emotion, and every performance is an opportunity to connect with amazing people like you.
+                    <?php echo nl2br(htmlspecialchars($profile['bio'])); ?>
                 </p>
                 <div class="artist-stats">
                     <div class="stat">
-                        <span class="stat-number">10+</span>
+                        <span class="stat-number"><?php echo htmlspecialchars($profile['years_experience']); ?></span>
                         <span class="stat-label">Years</span>
                     </div>
                     <div class="stat">
-                        <span class="stat-number">50+</span>
+                        <span class="stat-number"><?php echo htmlspecialchars($profile['songs_count']); ?></span>
                         <span class="stat-label">Songs</span>
                     </div>
                     <div class="stat">
-                        <span class="stat-number">1M+</span>
+                        <span class="stat-number"><?php echo htmlspecialchars($profile['views_count']); ?></span>
                         <span class="stat-label">Fans</span>
                     </div>
                 </div>

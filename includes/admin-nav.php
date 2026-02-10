@@ -5,6 +5,7 @@ $current_page = basename($_SERVER['PHP_SELF'], '.php');
 // Navigation items with their corresponding files
 $nav_items = [
     'dashboard' => ['url' => 'dashboard.php', 'icon' => 'fas fa-tachometer-alt', 'label' => 'Dashboard'],
+    'profile' => ['url' => 'profile.php', 'icon' => 'fas fa-user-circle', 'label' => 'Profile'],
     'songs' => ['url' => 'songs.php', 'icon' => 'fas fa-music', 'label' => 'Songs'],
     'videos' => ['url' => 'videos.php', 'icon' => 'fas fa-video', 'label' => 'Videos'],
     'tour' => ['url' => 'tour.php', 'icon' => 'fas fa-calendar-alt', 'label' => 'Tour Dates'],
