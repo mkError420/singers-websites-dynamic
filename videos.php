@@ -180,7 +180,139 @@ $total_pages = ceil($total_videos / $videos_per_page);
 document.addEventListener('DOMContentLoaded', function() {
     initVideoFilters();
     initSimpleVideoClick();
+    initHoverToPlay();
 });
+
+function initHoverToPlay() {
+    const videoItems = document.querySelectorAll('.video-item');
+    
+    videoItems.forEach((item, index) => {
+        const thumbnail = item.querySelector('.video-thumbnail');
+        const overlay = item.querySelector('.video-overlay');
+        const container = item.querySelector('.video-thumbnail-container');
+        const videoUrl = thumbnail.dataset.videoUrl;
+        
+        if (!videoUrl) return;
+        
+        // Create video element for hover playback
+        let hoverVideo = null;
+        let isPlaying = false;
+        
+        // Mouse enter - start playing
+        function startHoverVideo() {
+            if (isPlaying) return;
+            
+            try {
+                // Convert video URL to embed format
+                let embedUrl = '';
+                
+                if (videoUrl.includes('youtube.com/watch?v=')) {
+                    const videoId = videoUrl.split('v=')[1]?.split('&')[0];
+                    if (videoId) {
+                        embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&modestbranding=1&rel=0`;
+                    }
+                } else if (videoUrl.includes('youtu.be/')) {
+                    const videoId = videoUrl.split('youtu.be/')[1]?.split('?')[0];
+                    if (videoId) {
+                        embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&modestbranding=1&rel=0`;
+                    }
+                } else if (videoUrl.includes('uploads/videos/')) {
+                    embedUrl = videoUrl;
+                }
+                
+                if (!embedUrl) return;
+                
+                // Hide thumbnail and overlay
+                thumbnail.style.display = 'none';
+                overlay.style.display = 'none';
+                
+                // Create video element
+                hoverVideo = document.createElement('div');
+                hoverVideo.className = 'hover-video';
+                hoverVideo.style.cssText = `
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    z-index: 10;
+                    border-radius: 15px;
+                    overflow: hidden;
+                `;
+                
+                if (embedUrl.includes('uploads/videos/')) {
+                    // Local video file
+                    hoverVideo.innerHTML = `
+                        <video autoplay muted loop playsinline style="width: 100%; height: 100%; object-fit: cover;">
+                            <source src="${embedUrl}" type="video/mp4">
+                        </video>
+                    `;
+                } else {
+                    // YouTube embed
+                    hoverVideo.innerHTML = `
+                        <iframe src="${embedUrl}" 
+                                frameborder="0" 
+                                style="width: 100%; height: 100%; border-radius: 15px;"
+                                allow="autoplay; muted; encrypted-media; gyroscope; picture-in-picture"
+                                allowfullscreen>
+                        </iframe>
+                    `;
+                }
+                
+                container.appendChild(hoverVideo);
+                isPlaying = true;
+                
+            } catch (error) {
+                console.error('Error starting hover video:', error);
+            }
+        }
+        
+        // Mouse leave - stop playing
+        function stopHoverVideo() {
+            if (!isPlaying) return;
+            
+            isPlaying = false;
+            
+            // Remove hover video
+            if (hoverVideo && hoverVideo.parentNode) {
+                hoverVideo.remove();
+                hoverVideo = null;
+            }
+            
+            // Show thumbnail and overlay again
+            thumbnail.style.display = 'block';
+            overlay.style.display = 'flex';
+        }
+        
+        // Add event listeners
+        item.addEventListener('mouseenter', startHoverVideo);
+        item.addEventListener('mouseleave', stopHoverVideo);
+        
+        // Click to open in modal (separate from hover)
+        item.addEventListener('click', function(e) {
+            // Don't open modal if clicking on play button (that's handled by existing click handler)
+            if (!e.target.closest('.play-button')) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Stop hover video first
+                stopHoverVideo();
+                
+                // Get video data and open modal directly
+                const videoUrl = thumbnail.dataset.videoUrl;
+                const videoTitle = item.querySelector('.video-title').textContent;
+                const videoDescription = item.querySelector('.video-description').textContent;
+                
+                console.log('🎯 Video clicked directly:', videoUrl);
+                console.log('🎯 Video title:', videoTitle);
+                console.log('🎯 Video description:', videoDescription);
+                
+                // Open modal directly
+                openVideoModal(videoUrl, videoTitle, videoDescription);
+            }
+        });
+    });
+}
 
 function showToast(message, type = 'success') {
     const existingToast = document.querySelector('.toast');
@@ -406,6 +538,86 @@ function initSimpleVideoClick() {
             closeVideoModal();
         }
     });
+}
+
+// Video Modal Function
+function openVideoModal(videoUrl, title, description) {
+    console.log('🎬 Opening video modal:', videoUrl);
+    const videoModal = document.getElementById('videoModal');
+    const modalVideo = document.getElementById('modalVideo');
+    
+    if (!videoModal || !modalVideo) {
+        console.error('❌ Modal elements not found!');
+        return;
+    }
+    
+    // Convert YouTube URL to embed format
+    let embedUrl = videoUrl;
+    
+    try {
+        if (videoUrl.includes('m.youtube.com/watch?v=')) {
+            // Mobile YouTube URL
+            const videoId = videoUrl.split('v=')[1]?.split('&')[0];
+            if (videoId) {
+                embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
+            }
+        } else if (videoUrl.includes('youtube.com/watch?v=')) {
+            // Standard YouTube URL
+            const videoId = videoUrl.split('v=')[1]?.split('&')[0];
+            if (videoId) {
+                embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
+            }
+        } else if (videoUrl.includes('youtu.be/')) {
+            // Short YouTube URL
+            const videoId = videoUrl.split('youtu.be/')[1]?.split('?')[0];
+            if (videoId) {
+                embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
+            }
+        } else if (videoUrl.includes('youtube.com/embed/')) {
+            // Already embed format
+            const baseUrl = videoUrl.split('?')[0];
+            embedUrl = `${baseUrl}?autoplay=1&rel=0`;
+        } else if (videoUrl.includes('vimeo.com/')) {
+            // Vimeo URL
+            const videoId = videoUrl.split('vimeo.com/')[1]?.split('?')[0];
+            if (videoId) {
+                embedUrl = `https://player.vimeo.com/video/${videoId}?autoplay=1`;
+            }
+        } else if (videoUrl.includes('uploads/videos/')) {
+            // Uploaded video file
+            embedUrl = videoUrl;
+        }
+        
+        console.log('✅ Final embed URL:', embedUrl);
+        
+        // Set video info and open modal
+        document.getElementById('modalVideoTitle').textContent = title;
+        document.getElementById('modalVideoDescription').textContent = description;
+        
+        if (embedUrl.includes('uploads/videos/')) {
+            // HTML5 video for uploaded files
+            const videoContainer = document.querySelector('.video-container');
+            videoContainer.innerHTML = `
+                <video controls autoplay style="width: 100%; height: 100%;">
+                    <source src="${embedUrl}" type="video/mp4">
+                    <source src="${embedUrl}" type="video/webm">
+                    <source src="${embedUrl}" type="video/ogg">
+                    Your browser does not support the video tag.
+                </video>
+            `;
+        } else {
+            // iframe for YouTube/Vimeo
+            modalVideo.src = embedUrl;
+        }
+        
+        videoModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        console.log('🎬 Modal should be visible now');
+        
+    } catch (error) {
+        console.error('❌ Error loading video:', error);
+        showToast('Invalid video URL format', 'error');
+    }
 }
 
 function closeVideoModal() {
@@ -765,6 +977,22 @@ function closeVideoModal() {
     border: 1px solid rgba(255, 255, 255, 0.1);
     position: relative;
     transform-style: preserve-3d;
+}
+
+/* Hover Video Styles */
+.hover-video {
+    animation: fadeIn 0.3s ease;
+}
+
+.hover-video iframe,
+.hover-video video {
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .video-item::before {

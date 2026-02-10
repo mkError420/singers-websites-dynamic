@@ -1257,8 +1257,7 @@ if ($heroVideo) {
                             <img src="<?php echo APP_URL . '/' . ($video['thumbnail'] ?: 'assets/images/default-video.jpg'); ?>" 
                                  alt="<?php echo xss_clean($video['title']); ?>" 
                                  class="video-thumbnail"
-                                 data-video-url="<?php echo $video['video_url']; ?>"
-                                 onclick="openVideoModal('<?php echo $video['video_url']; ?>', '<?php echo xss_clean($video['title']); ?>', '<?php echo xss_clean($video['description']); ?>')">
+                                 data-video-url="<?php echo $video['video_url']; ?>">
                             <div class="video-overlay">
                                 <div class="play-button">
                                     <i class="fas fa-play"></i>
@@ -1414,7 +1413,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeModal = document.querySelector('.close-modal');
     const videoModal = document.getElementById('videoModal');
     
-    // Add click listeners to video overlays
+    // Initialize hover-to-play functionality
+    initHomeVideoHover();
+    
+    // Add click listeners to video overlays for modal
     const videoOverlays = document.querySelectorAll('.video-overlay');
     videoOverlays.forEach((overlay, index) => {
         overlay.addEventListener('click', function(e) {
@@ -1450,6 +1452,136 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// Home page hover-to-play functionality
+function initHomeVideoHover() {
+    const videoItems = document.querySelectorAll('.video-item');
+    
+    videoItems.forEach((item, index) => {
+        const thumbnail = item.querySelector('.video-thumbnail');
+        const overlay = item.querySelector('.video-overlay');
+        const container = item.querySelector('.video-thumbnail-container');
+        const videoUrl = thumbnail.dataset.videoUrl;
+        
+        if (!videoUrl) return;
+        
+        // Create video element for hover playback
+        let hoverVideo = null;
+        let isPlaying = false;
+        
+        // Mouse enter - start playing
+        function startHoverVideo() {
+            if (isPlaying) return;
+            
+            try {
+                // Convert video URL to embed format
+                let embedUrl = '';
+                
+                if (videoUrl.includes('youtube.com/watch?v=')) {
+                    const videoId = videoUrl.split('v=')[1]?.split('&')[0];
+                    if (videoId) {
+                        embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&modestbranding=1&rel=0`;
+                    }
+                } else if (videoUrl.includes('youtu.be/')) {
+                    const videoId = videoUrl.split('youtu.be/')[1]?.split('?')[0];
+                    if (videoId) {
+                        embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&modestbranding=1&rel=0`;
+                    }
+                } else if (videoUrl.includes('uploads/videos/')) {
+                    embedUrl = videoUrl;
+                }
+                
+                if (!embedUrl) return;
+                
+                // Hide thumbnail and overlay
+                thumbnail.style.display = 'none';
+                overlay.style.display = 'none';
+                
+                // Create video element
+                hoverVideo = document.createElement('div');
+                hoverVideo.className = 'hover-video';
+                hoverVideo.style.cssText = `
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    z-index: 10;
+                    border-radius: 15px;
+                    overflow: hidden;
+                `;
+                
+                if (embedUrl.includes('uploads/videos/')) {
+                    // Local video file
+                    hoverVideo.innerHTML = `
+                        <video autoplay muted loop playsinline style="width: 100%; height: 100%; object-fit: cover;">
+                            <source src="${embedUrl}" type="video/mp4">
+                        </video>
+                    `;
+                } else {
+                    // YouTube embed
+                    hoverVideo.innerHTML = `
+                        <iframe src="${embedUrl}" 
+                                frameborder="0" 
+                                style="width: 100%; height: 100%; border-radius: 15px;"
+                                allow="autoplay; muted; encrypted-media; gyroscope; picture-in-picture"
+                                allowfullscreen>
+                        </iframe>
+                    `;
+                }
+                
+                container.appendChild(hoverVideo);
+                isPlaying = true;
+                
+            } catch (error) {
+                console.error('Error starting hover video:', error);
+            }
+        }
+        
+        // Mouse leave - stop playing
+        function stopHoverVideo() {
+            if (!isPlaying) return;
+            
+            isPlaying = false;
+            
+            // Remove hover video
+            if (hoverVideo && hoverVideo.parentNode) {
+                hoverVideo.remove();
+                hoverVideo = null;
+            }
+            
+            // Show thumbnail and overlay again
+            thumbnail.style.display = 'block';
+            overlay.style.display = 'flex';
+        }
+        
+        // Add event listeners
+        item.addEventListener('mouseenter', startHoverVideo);
+        item.addEventListener('mouseleave', stopHoverVideo);
+        
+        // Click to open in modal (separate from hover)
+        item.addEventListener('click', function(e) {
+            // Don't open modal if clicking on play button
+            if (!e.target.closest('.play-button')) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Stop hover video first
+                stopHoverVideo();
+                
+                // Trigger modal click handler
+                const videoItem = this.closest('.video-item');
+                const thumbnail = videoItem.querySelector('.video-thumbnail');
+                if (thumbnail) {
+                    const videoUrl = thumbnail.dataset.videoUrl;
+                    const title = videoItem.querySelector('.video-title').textContent;
+                    const description = videoItem.querySelector('.video-description').textContent;
+                    openVideoModal(videoUrl, title, description);
+                }
+            }
+        });
+    });
+}
 </script>
 
 <style>
@@ -1470,6 +1602,22 @@ document.addEventListener('DOMContentLoaded', function() {
     position: relative;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     transform-style: preserve-3d;
+}
+
+/* Home Page Hover Video Styles */
+.hover-video {
+    animation: fadeIn 0.3s ease;
+}
+
+.hover-video iframe,
+.hover-video video {
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .video-item::before {

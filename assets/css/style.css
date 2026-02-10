@@ -233,7 +233,7 @@ header.scrolled nav {
 .nav-links {
     display: flex;
     list-style: none;
-    gap: 1.2rem;
+    gap: 2rem;
     align-items: center;
     position: relative;
     flex-wrap: nowrap;
@@ -257,8 +257,8 @@ header.scrolled nav {
 
 .nav-link {
     color: var(--text-secondary);
-    font-weight: 500;
-    font-size: 0.85rem;
+    font-weight: 800;
+    font-size: 1rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     text-decoration: none;
@@ -271,6 +271,7 @@ header.scrolled nav {
 .nav-link:hover {
     color: var(--primary-color);
     transform: translateY(-2px);
+    border-radius: 50px;
 }
 
 .nav-link::before {
@@ -325,8 +326,8 @@ header.scrolled nav {
     color: var(--text-primary);
     background: var(--glass-bg);
     backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid var(--glass-border);
+    border-radius: 50px;
+    padding: 0.5rem 1rem;
     transform: translateY(-2px);
 }
 
@@ -1028,7 +1029,7 @@ footer {
 /* Tablet Responsive */
 @media (max-width: 1024px) {
     .nav-links {
-        gap: 1.5rem;
+        gap: 3.5rem;
     }
     
     .nav-link {
