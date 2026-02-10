@@ -1598,7 +1598,7 @@ function closeVideoModal() {
     content: '';
     position: absolute;
     top: 0;
-    left: -100%;
+    left: -10%;
     width: 100%;
     height: 100%;
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);

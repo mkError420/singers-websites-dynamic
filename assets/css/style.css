@@ -1029,7 +1029,7 @@ footer {
 /* Tablet Responsive */
 @media (max-width: 1024px) {
     .nav-links {
-        gap: 3.5rem;
+        gap: 1.5rem;
     }
     
     .nav-link {

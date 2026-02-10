@@ -26,6 +26,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $views_count = $_POST['views_count'] ?? '';
                 $status = $_POST['status'] ?? 'active';
                 
+                // Debug: Log received data
+                error_log("Profile Update Data: " . print_r([
+                    'profile_image' => $profile_image,
+                    'artist_name' => $artist_name,
+                    'tagline' => $tagline,
+                    'bio' => $bio,
+                    'years_experience' => $years_experience,
+                    'songs_count' => $songs_count,
+                    'views_count' => $views_count,
+                    'status' => $status
+                ], true));
+                
                 // Handle image upload
                 if (isset($_FILES['profile_image_file']) && $_FILES['profile_image_file']['error'] === UPLOAD_ERR_OK) {
                     $upload_result = upload_file($_FILES['profile_image_file'], 'uploads/profile/', ['jpg', 'jpeg', 'png', 'gif', 'webp']);
@@ -48,13 +60,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'status' => $status
                     ];
                     
+                    // Debug: Log profile data
+                    error_log("Profile Data Array: " . print_r($profile_data, true));
+                    
                     // Check if profile exists
                     $existing = fetchOne("SELECT id FROM profile LIMIT 1");
+                    error_log("Existing Profile: " . print_r($existing, true));
+                    
                     if ($existing) {
                         $updated = updateData('profile', $profile_data, 'id = ?', [$existing['id']]);
+                        error_log("Update Result: " . ($updated ? 'Success' : 'Failed'));
                     } else {
                         $profile_data['created_at'] = date('Y-m-d H:i:s');
                         $updated = insertData('profile', $profile_data);
+                        error_log("Insert Result: " . ($updated ? 'Success' : 'Failed'));
                     }
                     
                     if ($updated) {
@@ -1595,7 +1614,7 @@ if (!$profile) {
             <p class="card-subtitle">Update your personal details and artist information</p>
         </div>
         <div class="card-body">
-            <form method="POST" enctype="multipart/form-data" class="profile-form">
+            <form method="POST" action="profile.php" enctype="multipart/form-data" class="profile-form">
                 <input type="hidden" name="action" value="update_profile">
                 
                 <!-- Basic Information Section -->
@@ -2272,6 +2291,21 @@ textarea.form-control {
             const progressFill = document.getElementById('progressFill');
             const progressText = document.getElementById('progressText');
             const previewPlaceholder = document.getElementById('previewPlaceholder');
+            
+            // Form submission handling
+            const profileForm = document.querySelector('.profile-form');
+            if (profileForm) {
+                profileForm.addEventListener('submit', function(e) {
+                    console.log('Form submitted!');
+                    console.log('Action:', document.querySelector('input[name="action"]').value);
+                    // Remove any conflicting event handlers
+                    e.preventDefault();
+                    // Let the form submit normally after a short delay
+                    setTimeout(() => {
+                        profileForm.submit();
+                    }, 100);
+                });
+            }
             
             if (fileInput && uploadArea) {
                 // Drag and drop
