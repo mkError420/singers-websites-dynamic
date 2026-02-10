@@ -97,9 +97,7 @@ $upcomingTourDates = get_tour_dates(true);
                                 </div>
                                 <div class="tour-actions">
                                     <?php if ($tour['ticket_url']): ?>
-                                        <a href="<?php echo xss_clean($tour['ticket_url']); ?>" 
-                                           target="_blank" 
-                                           class="btn btn-primary">Get Tickets</a>
+                                        <!-- Ticket URL available but button removed per request -->
                                     <?php endif; ?>
                                     <button class="btn-icon" onclick="addToCalendar(<?php echo $tour['id']; ?>)" title="Add to Calendar">
                                         <i class="fas fa-calendar-plus"></i>

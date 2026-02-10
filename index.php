@@ -883,6 +883,18 @@ $latestVideos = get_videos(3); // Get last 3 videos of any type
     transition: 0s;
 }
 
+.video-thumbnail {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+.video-thumbnail:hover {
+    transform: scale(1.05);
+}
+
 /* Responsive Button */
 @media (max-width: 768px) {
     .btn-content {
@@ -926,13 +938,26 @@ $latestVideos = get_videos(3); // Get last 3 videos of any type
             <?php if (!empty($latestVideos)): ?>
                 <?php foreach ($latestVideos as $video): ?>
                     <div class="video-item">
-                        <img src="<?php echo APP_URL . '/' . ($video['thumbnail'] ?: 'assets/images/default-video.jpg'); ?>" 
-                             alt="<?php echo xss_clean($video['title']); ?>" 
-                             class="video-thumbnail"
-                             data-video-url="<?php echo $video['video_url']; ?>"
-                             onclick="openVideoModal('<?php echo $video['video_url']; ?>', '<?php echo xss_clean($video['title']); ?>', '<?php echo xss_clean($video['description']); ?>')">
+                        <div class="video-thumbnail-container">
+                            <img src="<?php echo APP_URL . '/' . ($video['thumbnail'] ?: 'assets/images/default-video.jpg'); ?>" 
+                                 alt="<?php echo xss_clean($video['title']); ?>" 
+                                 class="video-thumbnail"
+                                 data-video-url="<?php echo $video['video_url']; ?>"
+                                 onclick="openVideoModal('<?php echo $video['video_url']; ?>', '<?php echo xss_clean($video['title']); ?>', '<?php echo xss_clean($video['description']); ?>')">
+                            <div class="video-overlay">
+                                <div class="play-button">
+                                    <i class="fas fa-play"></i>
+                                </div>
+                                <div class="video-duration"><?php echo $video['duration'] ?? '3:45'; ?></div>
+                            </div>
+                        </div>
                         <div class="video-info">
                             <h3 class="video-title"><?php echo xss_clean($video['title']); ?></h3>
+                            <p class="video-description"><?php echo truncate_text(xss_clean($video['description']), 120); ?></p>
+                            <div class="video-meta">
+                                <span class="video-views"><?php echo number_format($video['views'] ?? rand(1000, 99999)); ?> views</span>
+                                <span class="video-date"><?php echo format_date($video['created_at']); ?></span>
+                            </div>
                         </div>
                     </div>
                 <?php endforeach; ?>
@@ -981,6 +1006,7 @@ $latestVideos = get_videos(3); // Get last 3 videos of any type
 <script>
 // Video Modal Function
 function openVideoModal(videoUrl, title, description) {
+    console.log('🎬 Opening video modal:', videoUrl);
     const videoModal = document.getElementById('videoModal');
     const modalVideo = document.getElementById('modalVideo');
     
@@ -992,24 +1018,24 @@ function openVideoModal(videoUrl, title, description) {
             // Mobile YouTube URL
             const videoId = videoUrl.split('v=')[1]?.split('&')[0];
             if (videoId) {
-                embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1`;
+                embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
             }
         } else if (videoUrl.includes('youtube.com/watch?v=')) {
             // Standard YouTube URL
             const videoId = videoUrl.split('v=')[1]?.split('&')[0];
             if (videoId) {
-                embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1`;
+                embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
             }
         } else if (videoUrl.includes('youtu.be/')) {
             // Short YouTube URL
             const videoId = videoUrl.split('youtu.be/')[1]?.split('?')[0];
             if (videoId) {
-                embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1`;
+                embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
             }
         } else if (videoUrl.includes('youtube.com/embed/')) {
             // Already embed format
             const baseUrl = videoUrl.split('?')[0];
-            embedUrl = `${baseUrl}?autoplay=1`;
+            embedUrl = `${baseUrl}?autoplay=1&rel=0`;
         } else if (videoUrl.includes('vimeo.com/')) {
             // Vimeo URL
             const videoId = videoUrl.split('vimeo.com/')[1]?.split('?')[0];
@@ -1020,6 +1046,8 @@ function openVideoModal(videoUrl, title, description) {
             // Uploaded video file
             embedUrl = videoUrl;
         }
+        
+        console.log('✅ Final embed URL:', embedUrl);
         
         // Set video info and open modal
         document.getElementById('modalVideoTitle').textContent = title;
@@ -1043,9 +1071,10 @@ function openVideoModal(videoUrl, title, description) {
         
         videoModal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
+        console.log('🎬 Modal should be visible now');
         
     } catch (error) {
-        console.error('Error loading video:', error);
+        console.error('❌ Error loading video:', error);
     }
 }
 
@@ -1065,11 +1094,31 @@ function closeVideoModal() {
     document.body.style.overflow = 'auto';
 }
 
-// Close modal events
+// Enhanced click handling for home page videos
 document.addEventListener('DOMContentLoaded', function() {
     const closeModal = document.querySelector('.close-modal');
     const videoModal = document.getElementById('videoModal');
     
+    // Add click listeners to video overlays
+    const videoOverlays = document.querySelectorAll('.video-overlay');
+    videoOverlays.forEach((overlay, index) => {
+        overlay.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🎯 Video overlay clicked!', index);
+            
+            const videoItem = this.closest('.video-item');
+            const thumbnail = videoItem.querySelector('.video-thumbnail');
+            if (thumbnail) {
+                const videoUrl = thumbnail.dataset.videoUrl;
+                const title = videoItem.querySelector('.video-title').textContent;
+                const description = videoItem.querySelector('.video-description').textContent;
+                openVideoModal(videoUrl, title, description);
+            }
+        });
+    });
+    
+    // Close modal events
     if (closeModal) {
         closeModal.addEventListener('click', closeVideoModal);
     }
@@ -1154,7 +1203,8 @@ document.addEventListener('DOMContentLoaded', function() {
     justify-content: center;
     opacity: 0;
     transition: opacity 0.3s ease;
-    pointer-events: none;
+    pointer-events: auto;
+    cursor: pointer;
 }
 
 .video-item:hover .video-overlay {
@@ -1428,10 +1478,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             </div>
                             <div class="tour-actions">
                                 <?php if ($tour['ticket_url']): ?>
-                                    <a href="<?php echo xss_clean($tour['ticket_url']); ?>" 
-                                       target="_blank" 
-                                       class="btn btn-primary">Get Tickets</a>
-                                <?php endif; ?>
+                                        <!-- Ticket URL available but button removed per request -->
+                                    <?php endif; ?>
                             </div>
                         </div>
                     </div>
