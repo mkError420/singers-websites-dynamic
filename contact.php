@@ -194,57 +194,153 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         <!-- FAQ Section -->
         <div class="faq-section" id="faq">
-            <h3 class="section-subtitle">Frequently Asked Questions</h3>
+            <div class="faq-header">
+                <h3 class="section-subtitle">
+                    <span class="faq-title-text">Frequently Asked Questions</span>
+                    <div class="faq-title-decoration"></div>
+                </h3>
+                <p class="faq-subtitle">Quick answers to your burning questions</p>
+            </div>
+            
             <div class="faq-container">
-                <div class="faq-item">
+                <div class="faq-item" data-faq-id="1">
                     <div class="faq-question">
-                        <h4>How can I book you for an event?</h4>
-                        <i class="fas fa-chevron-down"></i>
+                        <div class="question-content">
+                            <div class="question-icon">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="question-text">
+                                <h4>How can I book you for an event?</h4>
+                                <span class="question-category">Booking & Events</span>
+                            </div>
+                        </div>
+                        <div class="question-toggle">
+                            <i class="fas fa-plus"></i>
+                        </div>
                     </div>
                     <div class="faq-answer">
-                        <p>For booking inquiries, please use the contact form above and select "Booking" as the subject. Include details about your event, date, venue, and budget. Our booking team will get back to you within 48 hours.</p>
+                        <div class="answer-content">
+                            <p>For booking inquiries, please use the contact form above and select "Booking" as the subject. Include details about your event, date, venue, and budget. Our booking team will get back to you within 48 hours.</p>
+                            <div class="answer-actions">
+                                <button class="btn-faq-action" onclick="scrollToContact('Booking')">
+                                    <i class="fas fa-envelope"></i> Book Now
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="faq-item">
+                <div class="faq-item" data-faq-id="2">
                     <div class="faq-question">
-                        <h4>Do you offer private lessons or workshops?</h4>
-                        <i class="fas fa-chevron-down"></i>
+                        <div class="question-content">
+                            <div class="question-icon">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                            <div class="question-text">
+                                <h4>Do you offer private lessons or workshops?</h4>
+                                <span class="question-category">Education</span>
+                            </div>
+                        </div>
+                        <div class="question-toggle">
+                            <i class="fas fa-plus"></i>
+                        </div>
                     </div>
                     <div class="faq-answer">
-                        <p>Yes! I occasionally offer songwriting workshops and vocal coaching sessions. These are announced through the newsletter and social media. You can also express interest through the contact form.</p>
+                        <div class="answer-content">
+                            <p>Yes! I occasionally offer songwriting workshops and vocal coaching sessions. These are announced through the newsletter and social media. You can also express interest through the contact form.</p>
+                            <div class="answer-actions">
+                                <button class="btn-faq-action" onclick="scrollToContact('General Inquiry')">
+                                    <i class="fas fa-envelope"></i> Express Interest
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="faq-item">
+                <div class="faq-item" data-faq-id="3">
                     <div class="faq-question">
-                        <h4>How can I get permission to use your music?</h4>
-                        <i class="fas fa-chevron-down"></i>
+                        <div class="question-content">
+                            <div class="question-icon">
+                                <i class="fas fa-music"></i>
+                            </div>
+                            <div class="question-text">
+                                <h4>How can I get permission to use your music?</h4>
+                                <span class="question-category">Licensing</span>
+                            </div>
+                        </div>
+                        <div class="question-toggle">
+                            <i class="fas fa-plus"></i>
+                        </div>
                     </div>
                     <div class="faq-answer">
-                        <p>For licensing requests, please contact us with details about your project. We offer different licensing options for commercial, educational, and non-profit use. Response time varies based on the complexity of your request.</p>
+                        <div class="answer-content">
+                            <p>For licensing requests, please contact us with details about your project. We offer different licensing options for commercial, educational, and non-profit use. Response time varies based on the complexity of your request.</p>
+                            <div class="answer-actions">
+                                <button class="btn-faq-action" onclick="scrollToContact('Press')">
+                                    <i class="fas fa-envelope"></i> Request License
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="faq-item">
+                <div class="faq-item" data-faq-id="4">
                     <div class="faq-question">
-                        <h4>Where can I buy merchandise?</h4>
-                        <i class="fas fa-chevron-down"></i>
+                        <div class="question-content">
+                            <div class="question-icon">
+                                <i class="fas fa-shopping-bag"></i>
+                            </div>
+                            <div class="question-text">
+                                <h4>Where can I buy merchandise?</h4>
+                                <span class="question-category">Shopping</span>
+                            </div>
+                        </div>
+                        <div class="question-toggle">
+                            <i class="fas fa-plus"></i>
+                        </div>
                     </div>
                     <div class="faq-answer">
-                        <p>Official merchandise is available at concerts and through our online store. We announce new merchandise drops through the newsletter and social media channels.</p>
+                        <div class="answer-content">
+                            <p>Official merchandise is available at concerts and through our online store. We announce new merchandise drops through the newsletter and social media channels.</p>
+                            <div class="answer-actions">
+                                <button class="btn-faq-action" onclick="window.open('#', '_blank')">
+                                    <i class="fas fa-external-link-alt"></i> Visit Store
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="faq-item">
+                <div class="faq-item" data-faq-id="5">
                     <div class="faq-question">
-                        <h4>How do I join your street team?</h4>
-                        <i class="fas fa-chevron-down"></i>
+                        <div class="question-content">
+                            <div class="question-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="question-text">
+                                <h4>How do I join your street team?</h4>
+                                <span class="question-category">Community</span>
+                            </div>
+                        </div>
+                        <div class="question-toggle">
+                            <i class="fas fa-plus"></i>
+                        </div>
                     </div>
                     <div class="faq-answer">
-                        <p>Our street team helps promote shows and share music in local communities. Subscribe to the newsletter and look for announcements about street team recruitment, typically before major tours.</p>
+                        <div class="answer-content">
+                            <p>Our street team helps promote shows and share music in local communities. Subscribe to the newsletter and look for announcements about street team recruitment, typically before major tours.</p>
+                            <div class="answer-actions">
+                                <button class="btn-faq-action" onclick="scrollToContact('Collaboration')">
+                                    <i class="fas fa-envelope"></i> Join Team
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </div>
+            
+            <div class="faq-footer">
+                <p>Still have questions? <a href="#contact" class="faq-contact-link">Get in touch</a></p>
             </div>
         </div>
     </div>
@@ -832,75 +928,332 @@ textarea.form-control {
     transform: translateY(-3px);
 }
 
-.faq-section h4 {
-    color: var(--text-primary);
-    margin-bottom: 0.5rem;
+/* FAQ Section - Unique Design */
+.faq-section {
+    margin-top: 4rem;
+    position: relative;
+    z-index: 1;
 }
 
-.faq-section p {
+.faq-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    position: relative;
+}
+
+.faq-title-text {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #ff6b6b, #4ecdc4, #45b7d1, #f7b731);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 300% 300%;
+    animation: faqTitleGradient 6s ease-in-out infinite;
+    display: inline-block;
+    position: relative;
+}
+
+@keyframes faqTitleGradient {
+    0%, 100% { background-position: 0% 50%; }
+    25% { background-position: 50% 25%; }
+    50% { background-position: 100% 50%; }
+    75% { background-position: 50% 75%; }
+}
+
+.faq-title-decoration {
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 150px;
+    height: 4px;
+    background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1, #f7b731, #ff6b6b);
+    background-size: 200% 100%;
+    border-radius: 2px;
+    animation: faqDecorationShimmer 3s linear infinite;
+}
+
+@keyframes faqDecorationShimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.faq-subtitle {
     color: var(--text-secondary);
-}
-
-.faq-section a {
-    color: var(--primary-color);
+    font-size: 1.1rem;
+    margin-top: 1.5rem;
+    font-weight: 400;
+    opacity: 0.8;
 }
 
 .faq-container {
-    max-width: 800px;
+    max-width: 900px;
     margin: 0 auto;
+    position: relative;
 }
 
 .faq-item {
-    background: var(--dark-secondary);
-    border-radius: 10px;
-    margin-bottom: 1rem;
+    background: 
+        linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%),
+        radial-gradient(circle at 30% 30%, rgba(255, 107, 107, 0.05) 0%, transparent 50%);
+    border: 2px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    margin-bottom: 1.5rem;
     overflow: hidden;
-    box-shadow: var(--shadow-md);
+    position: relative;
+    backdrop-filter: blur(10px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        0 4px 16px rgba(255, 107, 107, 0.1);
+}
+
+.faq-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1, #f7b731);
+    background-size: 300% 100%;
+    animation: faqItemShimmer 4s linear infinite;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.faq-item:hover::before,
+.faq-item.active::before {
+    opacity: 1;
+}
+
+@keyframes faqItemShimmer {
+    0% { background-position: -300% 0; }
+    100% { background-position: 300% 0; }
+}
+
+.faq-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 
+        0 12px 40px rgba(0, 0, 0, 0.4),
+        0 6px 24px rgba(255, 107, 107, 0.2);
+    border-color: rgba(255, 107, 107, 0.3);
+}
+
+.faq-item.active {
+    border-color: rgba(255, 107, 107, 0.4);
+    background: 
+        linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%),
+        radial-gradient(circle at 30% 30%, rgba(255, 107, 107, 0.08) 0%, transparent 50%);
 }
 
 .faq-question {
-    padding: 1.5rem;
+    padding: 2rem;
     cursor: pointer;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: background 0.3s ease;
+    transition: all 0.3s ease;
+    position: relative;
 }
 
-.faq-question:hover {
-    background: var(--dark-tertiary);
+.question-content {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex: 1;
 }
 
-.faq-question h4 {
+.question-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        0 6px 20px rgba(255, 107, 107, 0.3),
+        0 2px 8px rgba(78, 205, 196, 0.2);
+}
+
+.question-icon::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.3) 50%, transparent 70%);
+    background-size: 200% 200%;
+    animation: iconShimmer 3s linear infinite;
+}
+
+@keyframes iconShimmer {
+    0% { background-position: -200% -200%; }
+    100% { background-position: 200% 200%; }
+}
+
+.question-text h4 {
     color: var(--text-primary);
-    margin: 0;
+    margin: 0 0 0.5rem 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    line-height: 1.4;
 }
 
-.faq-question i {
+.question-category {
+    display: inline-block;
+    background: linear-gradient(135deg, rgba(78, 205, 196, 0.2), rgba(69, 183, 209, 0.2));
+    color: #4ecdc4;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid rgba(78, 205, 196, 0.3);
+}
+
+.question-toggle {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: var(--text-muted);
-    transition: transform 0.3s ease;
+    font-size: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
 }
 
-.faq-item.active .faq-question i {
-    transform: rotate(180deg);
+.faq-item.active .question-toggle {
+    background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+    border-color: transparent;
+    color: white;
+    transform: rotate(45deg);
+    box-shadow: 0 4px 16px rgba(255, 107, 107, 0.4);
 }
 
 .faq-answer {
-    padding: 0 1.5rem;
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.3s ease, padding 0.3s ease;
+    transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, transparent 100%);
 }
 
 .faq-item.active .faq-answer {
-    padding: 0 1.5rem 1.5rem;
-    max-height: 200px;
+    max-height: 300px;
+    padding: 0 2rem 2rem;
 }
 
-.faq-answer p {
+.answer-content {
+    padding-left: 75px;
+    position: relative;
+}
+
+.answer-content p {
     color: var(--text-secondary);
-    line-height: 1.6;
+    line-height: 1.7;
+    margin: 0 0 1.5rem 0;
+    font-size: 1rem;
+}
+
+.answer-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.btn-faq-action {
+    background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 25px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(255, 107, 107, 0.3);
+}
+
+.btn-faq-action::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    background-size: 200% 100%;
+    animation: btnActionShimmer 3s linear infinite;
+}
+
+@keyframes btnActionShimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.btn-faq-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(255, 107, 107, 0.5);
+}
+
+.faq-footer {
+    text-align: center;
+    margin-top: 3rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.01) 100%);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.faq-footer p {
+    color: var(--text-secondary);
     margin: 0;
+    font-size: 1.1rem;
+}
+
+.faq-contact-link {
+    color: #ff6b6b;
+    text-decoration: none;
+    font-weight: 600;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.faq-contact-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+    transition: width 0.3s ease;
+}
+
+.faq-contact-link:hover::after {
+    width: 100%;
+}
+
+.faq-contact-link:hover {
+    color: #4ecdc4;
 }
 
 @media (max-width: 768px) {
@@ -961,17 +1314,56 @@ function initFAQ() {
         const question = item.querySelector('.faq-question');
         
         question.addEventListener('click', function() {
-            // Close other items
+            // Close other items with smooth animation
             faqItems.forEach(otherItem => {
-                if (otherItem !== item) {
+                if (otherItem !== item && otherItem.classList.contains('active')) {
                     otherItem.classList.remove('active');
                 }
             });
             
             // Toggle current item
             item.classList.toggle('active');
+            
+            // Smooth scroll to question if opening
+            if (item.classList.contains('active')) {
+                setTimeout(() => {
+                    question.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'nearest'
+                    });
+                }, 100);
+            }
         });
     });
+}
+
+function scrollToContact(subject) {
+    // Find the contact form
+    const contactSection = document.getElementById('contact');
+    if (contactSection) {
+        // Scroll to contact section
+        contactSection.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+        
+        // Set the subject field after a short delay
+        setTimeout(() => {
+            const subjectField = document.getElementById('subject');
+            if (subjectField) {
+                subjectField.value = subject;
+                // Add highlight effect
+                subjectField.style.borderColor = '#ff6b6b';
+                subjectField.style.boxShadow = '0 0 0 3px rgba(255, 107, 107, 0.2)';
+                
+                // Remove highlight after 2 seconds
+                setTimeout(() => {
+                    subjectField.style.borderColor = '';
+                    subjectField.style.boxShadow = '';
+                }, 2000);
+            }
+        }, 800);
+    }
 }
 </script>
 
