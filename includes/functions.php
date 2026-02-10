@@ -45,6 +45,55 @@ function truncate_text($text, $length = 100, $suffix = '...') {
     return substr($text, 0, $length) . $suffix;
 }
 
+// Convert video URL to embed format
+function convertToEmbedUrl($videoUrl) {
+    try {
+        if (strpos($videoUrl, 'youtube.com/watch?v=') !== false) {
+            // Standard YouTube URL
+            $videoId = explode('v=', $videoUrl)[1];
+            $videoId = explode('&', $videoId)[0];
+            return "https://www.youtube.com/embed/$videoId";
+        } elseif (strpos($videoUrl, 'youtu.be/') !== false) {
+            // Short YouTube URL
+            $videoId = explode('youtu.be/', $videoUrl)[1];
+            $videoId = explode('?', $videoId)[0]; // Remove tracking parameters
+            return "https://www.youtube.com/embed/$videoId";
+        } elseif (strpos($videoUrl, 'youtube.com/embed/') !== false) {
+            // Already embed format
+            $videoId = explode('youtube.com/embed/', $videoUrl)[1];
+            $videoId = explode('?', $videoId)[0]; // Remove tracking parameters
+            return "https://www.youtube.com/embed/$videoId";
+        } elseif (strpos($videoUrl, 'vimeo.com/') !== false) {
+            // Vimeo URL
+            $videoId = explode('vimeo.com/', $videoUrl)[1];
+            $videoId = explode('?', $videoId)[0];
+            return "https://player.vimeo.com/video/$videoId";
+        }
+        return $videoUrl;
+    } catch (Exception $e) {
+        return $videoUrl;
+    }
+}
+
+// Get YouTube video ID
+function getYoutubeVideoId($videoUrl) {
+    try {
+        if (strpos($videoUrl, 'youtube.com/watch?v=') !== false) {
+            $videoId = explode('v=', $videoUrl)[1];
+            return explode('&', $videoId)[0];
+        } elseif (strpos($videoUrl, 'youtu.be/') !== false) {
+            $videoId = explode('youtu.be/', $videoUrl)[1];
+            return explode('?', $videoId)[0]; // Remove tracking parameters
+        } elseif (strpos($videoUrl, 'youtube.com/embed/') !== false) {
+            $videoId = explode('youtube.com/embed/', $videoUrl)[1];
+            return explode('?', $videoId)[0]; // Remove tracking parameters
+        }
+        return '';
+    } catch (Exception $e) {
+        return '';
+    }
+}
+
 // Generate slug from string
 function generate_slug($string) {
     $slug = strtolower($string);

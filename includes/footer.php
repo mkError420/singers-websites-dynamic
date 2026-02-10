@@ -9,8 +9,7 @@
                     <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
                     <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
                     <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
-                    <a href="#" aria-label="Spotify"><i class="fab fa-spotify"></i></a>
-                    <a href="#" aria-label="Apple Music"><i class="fab fa-apple"></i></a>
+                    
                 </div>
             </div>
             

@@ -12,6 +12,7 @@ $nav_items = [
     'gallery' => ['url' => 'gallery.php', 'icon' => 'fas fa-images', 'label' => 'Gallery'],
     'messages' => ['url' => 'messages.php', 'icon' => 'fas fa-envelope', 'label' => 'Messages'],
     'subscribers' => ['url' => 'subscribers.php', 'icon' => 'fas fa-users', 'label' => 'Subscribers'],
+    'hero-videos' => ['url' => 'hero-videos.php', 'icon' => 'fas fa-film', 'label' => 'Hero Videos'],
     'settings' => ['url' => 'settings.php', 'icon' => 'fas fa-cog', 'label' => 'Settings']
 ];
 ?>

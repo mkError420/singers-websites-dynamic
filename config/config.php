@@ -9,7 +9,7 @@ define('DB_USER', 'root');
 define('DB_PASS', '');
 
 // Application settings
-define('APP_NAME', 'MK. RABBANI');
+define('APP_NAME', 'NILU AHASAN');
 define('APP_URL', 'http://localhost/website-singers');
 define('UPLOAD_PATH', __DIR__ . '/../uploads/');
 define('MAX_FILE_SIZE', 50 * 1024 * 1024); // 50MB

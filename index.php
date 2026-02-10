@@ -7,10 +7,92 @@ require_once __DIR__ . '/includes/functions.php';
 $latestSongs = get_songs(3);
 $upcomingTourDates = get_tour_dates(true, 3);
 $latestVideos = get_videos(3); // Get last 3 videos of any type
+
+// Get active hero video
+$heroVideo = fetchOne("SELECT * FROM hero_videos WHERE is_active = 1 ORDER BY display_order ASC LIMIT 1");
+
+// Debug: Log hero video info
+if ($heroVideo) {
+    error_log("Hero video found: " . print_r($heroVideo, true));
+    error_log("Video URL: " . APP_URL . '/' . $heroVideo['video_url']);
+    error_log("Video type: " . $heroVideo['video_type']);
+    error_log("File exists: " . (file_exists(__DIR__ . '/' . $heroVideo['video_url']) ? 'Yes' : 'No'));
+} else {
+    error_log("No active hero video found");
+}
 ?>
 
 <!-- Hero Section -->
 <section class="hero" id="home">
+    <?php if ($heroVideo): ?>
+        <div class="hero-video-background">
+            <?php if ($heroVideo['video_type'] === 'uploaded'): ?>
+                <video autoplay muted loop playsinline class="hero-video">
+                    <source src="<?php echo APP_URL . '/' . $heroVideo['video_url']; ?>" type="video/mp4">
+                    <source src="<?php echo APP_URL . '/' . $heroVideo['video_url']; ?>" type="video/webm">
+                    Your browser does not support the video tag.
+                </video>
+            <?php else: ?>
+                <div class="hero-video-iframe-container">
+                    <iframe 
+                        id="hero-video-iframe"
+                        src="<?php echo convertToEmbedUrl($heroVideo['video_url']); ?>?autoplay=1&mute=1&loop=1&playlist=<?php echo getYoutubeVideoId($heroVideo['video_url']); ?>&controls=0&showinfo=0&rel=0&modestbranding=1&enablejsapi=1&iv_load_policy=3"
+                        class="hero-video-iframe"
+                        frameborder="0"
+                        allow="autoplay; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen>
+                    </iframe>
+                </div>
+                <script>
+                    // YouTube iframe API for better control
+                    var tag = document.createElement('script');
+                    tag.src = "https://www.youtube.com/iframe_api";
+                    var firstScriptTag = document.getElementsByTagName('script')[0];
+                    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+                    
+                    var player;
+                    function onYouTubeIframeAPIReady() {
+                        player = new YT.Player('hero-video-iframe', {
+                            events: {
+                                'onReady': function(event) {
+                                    console.log('YouTube player ready');
+                                    event.target.playVideo();
+                                    event.target.mute();
+                                    // Set volume to 0 for muted playback
+                                    event.target.setVolume(0);
+                                },
+                                'onStateChange': function(event) {
+                                    console.log('YouTube player state changed:', event.data);
+                                    // Handle video end to restart loop
+                                    if (event.data === YT.PlayerState.ENDED) {
+                                        console.log('Video ended, restarting');
+                                        event.target.playVideo();
+                                    }
+                                    // Handle buffering
+                                    if (event.data === YT.PlayerState.BUFFERING) {
+                                        console.log('Video buffering');
+                                    }
+                                    // Handle playing
+                                    if (event.data === YT.PlayerState.PLAYING) {
+                                        console.log('Video playing');
+                                    }
+                                },
+                                'onError': function(event) {
+                                    console.error('YouTube player error:', event.data);
+                                    // Try to reload the video
+                                    setTimeout(function() {
+                                        event.target.playVideo();
+                                    }, 2000);
+                                }
+                            }
+                        });
+                    }
+                </script>
+            <?php endif; ?>
+            <div class="hero-video-overlay"></div>
+        </div>
+    <?php endif; ?>
+    
     <div class="hero-content">
         <h1><?php echo APP_NAME; ?></h1>
         <p class="tagline">Where Music Meets Soul</p>
@@ -20,6 +102,239 @@ $latestVideos = get_videos(3); // Get last 3 videos of any type
         </div>
     </div>
 </section>
+
+<style>
+/* Hero Video Background Styles */
+.hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+}
+
+.hero-video-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.hero-video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    transform: translate(-50%, -50%);
+    object-fit: cover;
+    z-index: 1;
+}
+
+.hero-video-iframe-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.hero-video-iframe {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100vw;
+    height: 56.25vw; /* 16:9 aspect ratio */
+    min-height: 100vh;
+    min-width: 177.77vh; /* 16:9 aspect ratio */
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.hero-video-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        135deg,
+        rgba(0, 0, 0, 0.7) 0%,
+        rgba(0, 0, 0, 0.5) 50%,
+        rgba(0, 0, 0, 0.7) 100%
+    );
+    z-index: 2;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 3;
+    text-align: center;
+    color: white;
+    padding: 2rem;
+    max-width: 800px;
+    animation: fadeInUp 1s ease-out;
+}
+
+.hero-content h1 {
+    font-size: 4rem;
+    font-weight: 900;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #ffffff, #f0f0f0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    animation: titleGlow 3s ease-in-out infinite;
+}
+
+@keyframes titleGlow {
+    0%, 100% { 
+        filter: brightness(1);
+        transform: translateY(0);
+    }
+    50% { 
+        filter: brightness(1.1);
+        transform: translateY(-2px);
+    }
+}
+
+.hero-content .tagline {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+    font-weight: 300;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    animation: fadeInUp 1s ease-out 0.3s both;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    animation: fadeInUp 1s ease-out 0.6s both;
+}
+
+.cta-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 50px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.cta-button {
+    background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+    color: white;
+    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+}
+
+.cta-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px rgba(255, 107, 107, 0.6);
+    background: linear-gradient(135deg, #4ecdc4, #ff6b6b);
+}
+
+.cta-button.secondary {
+    background: transparent;
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+}
+
+.cta-button.secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2);
+}
+
+.cta-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.cta-button:hover::before {
+    left: 100%;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero-content h1 {
+        font-size: 2.5rem;
+    }
+    
+    .hero-content .tagline {
+        font-size: 1.2rem;
+    }
+    
+    .hero-buttons {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .cta-button {
+        padding: 0.875rem 1.5rem;
+        font-size: 1rem;
+    }
+    
+    .hero-video-iframe {
+        width: 100vw;
+        height: 177.78vw; /* 9:16 aspect ratio for mobile */
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-content h1 {
+        font-size: 2rem;
+    }
+    
+    .hero-content .tagline {
+        font-size: 1rem;
+    }
+    
+    .cta-button {
+        padding: 0.75rem 1.25rem;
+        font-size: 0.9rem;
+    }
+}
+</style>
 
 <!-- Latest Music Section -->
 <section id="music" class="music-section">
