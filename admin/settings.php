@@ -17,8 +17,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     
     if ($action === 'update_settings') {
-        // Update configuration (in a real app, you'd update a settings table)
-        $success_message = 'Settings updated successfully!';
+        // Get form data
+        $app_name = sanitize_input($_POST['app_name'] ?? APP_NAME);
+        $app_url = sanitize_input($_POST['app_url'] ?? APP_URL);
+        $from_email = sanitize_input($_POST['from_email'] ?? FROM_EMAIL);
+        
+        // Update config file
+        $config_file = __DIR__ . '/../config/config.php';
+        if (file_exists($config_file)) {
+            $config_content = file_get_contents($config_file);
+            
+            // Update the constants in the config file
+            $config_content = preg_replace(
+                "/define\('APP_NAME', '.*?'\)/",
+                "define('APP_NAME', '" . addslashes($app_name) . "')",
+                $config_content
+            );
+            
+            $config_content = preg_replace(
+                "/define\('APP_URL', '.*?'\)/",
+                "define('APP_URL', '" . addslashes($app_url) . "')",
+                $config_content
+            );
+            
+            $config_content = preg_replace(
+                "/define\('FROM_EMAIL', '.*?'\)/",
+                "define('FROM_EMAIL', '" . addslashes($from_email) . "')",
+                $config_content
+            );
+            
+            // Write back to config file
+            if (file_put_contents($config_file, $config_content)) {
+                $success_message = 'Settings updated successfully!';
+                
+                // Clear any cached includes
+                if (function_exists('opcache_invalidate')) {
+                    opcache_invalidate($config_file, true);
+                }
+            } else {
+                $error_message = 'Failed to update settings. Please check file permissions.';
+            }
+        }
     }
 }
 
@@ -272,8 +311,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             
             <?php if (isset($success_message)): ?>
-                <div class="alert-success">
+                <div class="alert-success" id="success-message">
                     <?php echo $success_message; ?>
+                </div>
+                <script>
+                    // Auto-hide success message after 4 seconds
+                    setTimeout(function() {
+                        const successMessage = document.getElementById('success-message');
+                        if (successMessage) {
+                            successMessage.style.transition = 'opacity 0.5s ease';
+                            successMessage.style.opacity = '0';
+                            setTimeout(function() {
+                                successMessage.remove();
+                            }, 500);
+                        }
+                    }, 4000);
+                </script>
+            <?php endif; ?>
+            
+            <?php if (isset($error_message)): ?>
+                <div class="alert-error" style="background: var(--error-color); color: white; padding: 1rem; border-radius: 8px; margin-bottom: 2rem;">
+                    <?php echo $error_message; ?>
                 </div>
             <?php endif; ?>
             
@@ -286,22 +344,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="form-group">
                         <label for="app_name">Application Name</label>
                         <input type="text" id="app_name" name="app_name" class="form-control" 
-                               value="<?php echo APP_NAME; ?>" readonly>
-                        <small style="color: var(--text-muted);">Edit in config/config.php</small>
+                               value="<?php echo APP_NAME; ?>">
                     </div>
                     
                     <div class="form-group">
                         <label for="app_url">Application URL</label>
                         <input type="text" id="app_url" name="app_url" class="form-control" 
-                               value="<?php echo APP_URL; ?>" readonly>
-                        <small style="color: var(--text-muted);">Edit in config/config.php</small>
+                               value="<?php echo APP_URL; ?>">
                     </div>
                     
                     <div class="form-group">
                         <label for="from_email">From Email</label>
                         <input type="email" id="from_email" name="from_email" class="form-control" 
-                               value="<?php echo FROM_EMAIL; ?>" readonly>
-                        <small style="color: var(--text-muted);">Edit in config/config.php</small>
+                               value="<?php echo FROM_EMAIL; ?>">
                     </div>
                 </div>
                 

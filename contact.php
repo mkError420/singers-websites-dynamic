@@ -147,8 +147,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                         <div class="contact-details">
                             <h4>Phone</h4>
-                            <p>+1 (555) 123-4567</p>
-                            <small>Mon-Fri, 9am-5pm EST</small>
+                            <p>+88 0185-718767</p>
+                            <small>Sun-Thu, 9am-5pm </small>
                         </div>
                     </div>
                     
@@ -158,7 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                         <div class="contact-details">
                             <h4>Address</h4>
-                            <p>123 Music Street<br>Los Angeles, CA 90028</p>
+                            <p>123 Medicle Street<br>Rangpur City, Rangpur</p>
                             <small>By appointment only</small>
                         </div>
                     </div>
@@ -180,9 +180,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <a href="https://youtube.com/<?php echo strtolower(APP_NAME); ?>" target="_blank" class="social-link">
                             <i class="fab fa-youtube"></i>
                         </a>
-                        <a href="https://spotify.com/artist/<?php echo strtolower(APP_NAME); ?>" target="_blank" class="social-link">
-                            <i class="fab fa-spotify"></i>
-                        </a>
+                        
                     </div>
                 </div>
                 

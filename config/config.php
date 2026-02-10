@@ -9,7 +9,7 @@ define('DB_USER', 'root');
 define('DB_PASS', '');
 
 // Application settings
-define('APP_NAME', 'Artist Name');
+define('APP_NAME', 'MK. RABBANI');
 define('APP_URL', 'http://localhost/website-singers');
 define('UPLOAD_PATH', __DIR__ . '/../uploads/');
 define('MAX_FILE_SIZE', 50 * 1024 * 1024); // 50MB
@@ -23,7 +23,7 @@ define('SMTP_HOST', 'localhost');
 define('SMTP_PORT', 587);
 define('SMTP_USER', '');
 define('SMTP_PASS', '');
-define('FROM_EMAIL', 'noreply@singerwebsite.com');
+define('FROM_EMAIL', 'noreplay@artistwebsite.com');
 define('FROM_NAME', APP_NAME);
 
 // Timezone
