@@ -29,11 +29,11 @@
             <div class="footer-section">
                 <h3>Music</h3>
                 <ul>
-                    <li><a href="#">Latest Release</a></li>
-                    <li><a href="#">Discography</a></li>
-                    <li><a href="#">Lyrics</a></li>
-                    <li><a href="#">Behind the Scenes</a></li>
-                    <li><a href="#">Music Videos</a></li>
+                    <li><a href="http://localhost/website-singers/music.php">Latest Release</a></li>
+                    <li><a href="http://localhost/website-singers/music.php">Discography</a></li>
+                    <li><a href="http://localhost/website-singers/music.php">Lyrics</a></li>
+                    <li><a href="http://localhost/website-singers/gallery.php">Behind the Scenes</a></li>
+                    <li><a href="http://localhost/website-singers/videos.php">Music Videos</a></li>
                 </ul>
             </div>
             
