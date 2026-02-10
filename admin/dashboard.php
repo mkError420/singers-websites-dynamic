@@ -149,10 +149,8 @@ $upcoming_tours = fetchAll("SELECT * FROM tour_dates WHERE event_date >= CURDATE
         .admin-nav a:hover,
         .admin-nav a.active {
             background: rgba(255, 107, 107, 0.1);
-            color: var(--primary-color);
+            color: #000000;
             transform: translateX(8px);
-            border-color: rgba(255, 107, 107, 0.3);
-            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);
         }
         
         .admin-nav a:hover::before,

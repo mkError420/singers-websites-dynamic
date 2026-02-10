@@ -101,7 +101,7 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
         .admin-nav a:hover,
         .admin-nav a.active {
             background: var(--dark-tertiary);
-            color: var(--primary-color);
+            color: #000000;
         }
         
         /* Mobile menu toggle */

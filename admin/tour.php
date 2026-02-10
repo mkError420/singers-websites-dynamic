@@ -97,7 +97,7 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
         .admin-nav a:hover,
         .admin-nav a.active {
             background: var(--dark-tertiary);
-            color: var(--primary-color);
+            color: #000000;
         }
         
         .admin-content {
@@ -263,6 +263,7 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
         
         .add-tour-btn:hover {
             background: var(--secondary-color);
+            color: #000000;
             transform: translateY(-2px);
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
         }
@@ -382,9 +383,29 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
             </div>
             
             <?php if ($success_message): ?>
-                <div class="alert-success">
+                <div class="alert-success" id="successMessage">
                     <?php echo $success_message; ?>
                 </div>
+                <script>
+                    // Auto-hide success message after 4 seconds
+                    setTimeout(function() {
+                        const successMessage = document.getElementById('successMessage');
+                        if (successMessage) {
+                            successMessage.style.transition = 'opacity 0.5s ease';
+                            successMessage.style.opacity = '0';
+                            setTimeout(function() {
+                                successMessage.remove();
+                            }, 500);
+                        }
+                    }, 4000);
+                    
+                    // Clean URL to remove success parameters
+                    const url = new URL(window.location);
+                    url.searchParams.delete('added');
+                    url.searchParams.delete('updated');
+                    url.searchParams.delete('deleted');
+                    window.history.replaceState({}, '', url);
+                </script>
             <?php endif; ?>
             
             <a href="add-tour.php" class="add-tour-btn">

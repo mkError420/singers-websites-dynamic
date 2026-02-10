@@ -1431,10 +1431,115 @@ document.addEventListener('DOMContentLoaded', function() {
     font-size: 1rem;
 }
 
+/* Tour Section Styles */
+.tour-dates {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.tour-item {
+    background: linear-gradient(135deg, var(--dark-secondary) 0%, var(--dark-tertiary) 100%);
+    border-radius: 15px;
+    padding: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.tour-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+}
+
+.tour-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 35px rgba(255, 107, 107, 0.2);
+    border-color: rgba(255, 107, 107, 0.3);
+}
+
+.tour-date {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.tour-info h3 {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+}
+
+.tour-venue {
+    color: var(--primary-color);
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.tour-location {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tour-datetime {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.tour-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+}
+
 @media (max-width: 768px) {
     .video-grid {
         grid-template-columns: 1fr;
         gap: 1.5rem;
+    }
+    
+    .tour-dates {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .tour-item {
+        padding: 1rem;
+    }
+    
+    .tour-info h3 {
+        font-size: 1rem;
+    }
+    
+    .tour-venue {
+        font-size: 0.9rem;
+    }
+    
+    .tour-location {
+        font-size: 0.8rem;
+    }
+    
+    .tour-datetime {
+        font-size: 0.75rem;
     }
     
     .modal-content {

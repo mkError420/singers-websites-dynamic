@@ -101,19 +101,14 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
         .admin-nav a:hover,
         .admin-nav a.active {
             background: var(--dark-tertiary);
-            color: var(--primary-color);
+            color: #000000;
         }
         
         .admin-content {
             flex: 1;
-            margin-left: 0;
             padding: 2rem;
-            background: transparent;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            padding-top: 4rem;
+            background: var(--dark-bg);
         }
         
         .admin-header {
@@ -136,8 +131,6 @@ if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
         
         .messages-table {
             width: 100%;
-            max-width: 1000px;
-            margin: 0 auto;
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
             border-radius: 15px;
             overflow: hidden;

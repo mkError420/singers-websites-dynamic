@@ -104,7 +104,7 @@ if (isset($_GET['toggled']) && $_GET['toggled'] == 1) {
         .admin-nav a:hover,
         .admin-nav a.active {
             background: var(--dark-tertiary);
-            color: var(--primary-color);
+            color: #000000;
         }
         
         .admin-content {

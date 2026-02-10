@@ -72,7 +72,7 @@ $upcomingTourDates = get_tour_dates(true);
             <div class="tour-dates">
                 <?php if (!empty($upcomingTourDates)): ?>
                     <?php foreach ($upcomingTourDates as $tour): ?>
-                        <div class="tour-item upcoming" data-date-type="upcoming">
+                        <div class="tour-item upcoming" data-date-type="upcoming" data-tour-id="<?php echo $tour['id']; ?>">
                             <div class="tour-date-badge">
                                 <div class="tour-month"><?php echo format_date($tour['event_date'], 'M'); ?></div>
                                 <div class="tour-day"><?php echo format_date($tour['event_date'], 'j'); ?></div>
@@ -123,7 +123,7 @@ $upcomingTourDates = get_tour_dates(true);
             <div class="tour-dates">
                 <?php if (!empty($pastTourDates)): ?>
                     <?php foreach ($pastTourDates as $tour): ?>
-                        <div class="tour-item past" data-date-type="past">
+                        <div class="tour-item past" data-date-type="past" data-tour-id="<?php echo $tour['id']; ?>">
                             <div class="tour-date-badge">
                                 <div class="tour-month"><?php echo format_date($tour['event_date'], 'M'); ?></div>
                                 <div class="tour-day"><?php echo format_date($tour['event_date'], 'j'); ?></div>
@@ -633,8 +633,8 @@ $upcomingTourDates = get_tour_dates(true);
 }
 
 .tour-dates {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 1.5rem;
     position: relative;
     z-index: 1;
@@ -644,17 +644,17 @@ $upcomingTourDates = get_tour_dates(true);
     background: 
         linear-gradient(145deg, var(--dark-secondary) 0%, var(--dark-tertiary) 100%),
         radial-gradient(circle at 30% 30%, rgba(255, 107, 107, 0.05) 0%, transparent 50%);
-    border-radius: 25px;
-    padding: 2rem;
+    border-radius: 20px;
+    padding: 1.5rem;
     display: flex;
     align-items: center;
-    gap: 2rem;
+    gap: 1.5rem;
     box-shadow: 
-        0 15px 35px rgba(0, 0, 0, 0.4),
-        0 5px 15px rgba(255, 107, 107, 0.1),
+        0 10px 25px rgba(0, 0, 0, 0.3),
+        0 3px 10px rgba(255, 107, 107, 0.1),
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
 }
@@ -694,11 +694,12 @@ $upcomingTourDates = get_tour_dates(true);
 }
 
 .tour-item:hover {
-    transform: translateY(-10px) scale(1.02);
+    transform: translateY(-5px) scale(1.01);
     box-shadow: 
-        0 25px 50px rgba(255, 107, 107, 0.2),
-        0 8px 25px rgba(78, 205, 196, 0.1),
-        border-color: rgba(255, 107, 107, 0.3);
+        0 15px 35px rgba(255, 107, 107, 0.15),
+        0 5px 15px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 107, 107, 0.3);
 }
 
 .tour-item:hover::after {
@@ -724,11 +725,11 @@ $upcomingTourDates = get_tour_dates(true);
     background: 
         linear-gradient(145deg, var(--dark-tertiary) 0%, var(--dark-secondary) 100%),
         radial-gradient(circle at 50% 50%, rgba(255, 107, 107, 0.1) 0%, transparent 50%);
-    border-radius: 15px;
-    padding: 1rem;
+    border-radius: 12px;
+    padding: 0.75rem;
     text-align: center;
-    min-width: 80px;
-    border: 2px solid rgba(255, 255, 255, 0.1);
+    min-width: 65px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     position: relative;
     overflow: hidden;
 }
@@ -751,16 +752,16 @@ $upcomingTourDates = get_tour_dates(true);
 }
 
 .tour-month {
-    font-size: 0.9rem;
+    font-size: 0.75rem;
     color: var(--text-secondary);
     text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 0.25rem;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.2rem;
     font-weight: 600;
 }
 
 .tour-day {
-    font-size: 1.8rem;
+    font-size: 1.4rem;
     font-weight: 700;
     color: var(--text-primary);
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
@@ -772,8 +773,8 @@ $upcomingTourDates = get_tour_dates(true);
 
 .tour-info h3 {
     color: var(--text-primary);
-    margin-bottom: 0.75rem;
-    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
     font-weight: 700;
     line-height: 1.3;
     background: linear-gradient(135deg, #ffffff, #e0e0e0);
@@ -787,15 +788,15 @@ $upcomingTourDates = get_tour_dates(true);
 
 .tour-venue {
     color: var(--text-secondary);
-    margin-bottom: 0.5rem;
-    font-size: 1.1rem;
+    margin-bottom: 0.4rem;
+    font-size: 1rem;
     font-weight: 500;
 }
 
 .tour-location {
     color: var(--text-muted);
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+    margin-bottom: 0.4rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -829,7 +830,7 @@ $upcomingTourDates = get_tour_dates(true);
 
 .tour-datetime {
     color: var(--text-muted);
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -837,7 +838,7 @@ $upcomingTourDates = get_tour_dates(true);
 
 .tour-datetime i {
     color: var(--primary-color);
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     transition: all 0.3s ease;
 }
 
@@ -989,22 +990,324 @@ $upcomingTourDates = get_tour_dates(true);
     }
 }
 
-@media (max-width: 480px) {
-    .tour-stats {
+@media (max-width: 768px) {
+    .tour-dates {
         grid-template-columns: 1fr;
+        gap: 1rem;
     }
     
     .tour-item {
-        padding: 1.5rem;
+        padding: 1rem;
+        gap: 1rem;
     }
     
-    .tour-actions {
-        flex-direction: column;
-        width: 100%;
+    .tour-date-badge {
+        min-width: 55px;
+        padding: 0.5rem;
+    }
+    
+    .tour-month {
+        font-size: 0.7rem;
+    }
+    
+    .tour-day {
+        font-size: 1.2rem;
+    }
+    
+    .tour-info h3 {
+        font-size: 1.1rem;
+    }
+    
+    .tour-venue {
+        font-size: 0.9rem;
+    }
+    
+    .tour-location {
+        font-size: 0.8rem;
+    }
+    
+    .tour-datetime {
+        font-size: 0.75rem;
+    }
+    
+    .tour-stats {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .tour-item {
+        padding: 0.75rem;
+        gap: 0.75rem;
+    }
+    
+    .tour-date-badge {
+        min-width: 50px;
+        padding: 0.4rem;
     }
     
     .tour-actions .btn {
         width: 100%;
+    }
+}
+
+/* Share Popup Styles */
+.share-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.share-popup.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.share-popup-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+}
+
+.share-popup-content {
+    position: relative;
+    background: var(--dark-secondary);
+    border-radius: 20px;
+    padding: 0;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transform: scale(0.8) translateY(20px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.share-popup.show .share-popup-content {
+    transform: scale(1) translateY(0);
+}
+
+.share-popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: linear-gradient(135deg, var(--dark-tertiary), var(--dark-secondary));
+}
+
+.share-popup-header h3 {
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.share-popup-close {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: var(--text-secondary);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1.1rem;
+}
+
+.share-popup-close:hover {
+    background: var(--primary-color);
+    color: var(--text-primary);
+    transform: scale(1.1);
+}
+
+.share-popup-body {
+    padding: 2rem;
+}
+
+.share-social-icons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.social-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    border-radius: 15px;
+    text-decoration: none;
+    font-size: 1.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.social-icon::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+}
+
+.social-icon:hover::before {
+    transform: translateX(100%);
+}
+
+.social-icon.facebook {
+    background: linear-gradient(135deg, #1877f2, #0c5ed8);
+    color: white;
+}
+
+.social-icon.twitter {
+    background: linear-gradient(135deg, #1da1f2, #0c85d0);
+    color: white;
+}
+
+.social-icon.whatsapp {
+    background: linear-gradient(135deg, #25d366, #128c7e);
+    color: white;
+}
+
+.social-icon.linkedin {
+    background: linear-gradient(135deg, #0077b5, #005885);
+    color: white;
+}
+
+.social-icon.instagram {
+    background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
+    color: white;
+}
+
+.social-icon.email {
+    background: linear-gradient(135deg, #ea4335, #c23321);
+    color: white;
+}
+
+.social-icon:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.share-copy-link {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.share-copy-link input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-primary);
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.share-copy-link input:focus {
+    border-color: var(--primary-color);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.copy-btn {
+    background: var(--primary-color);
+    border: none;
+    color: var(--text-primary);
+    padding: 0.75rem 1.5rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+}
+
+.copy-btn:hover {
+    background: var(--secondary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+}
+
+/* Mobile Responsive for Share Popup */
+@media (max-width: 768px) {
+    .share-popup-content {
+        width: 95%;
+        margin: 1rem;
+    }
+    
+    .share-popup-header {
+        padding: 1rem;
+    }
+    
+    .share-popup-header h3 {
+        font-size: 1.1rem;
+    }
+    
+    .share-popup-body {
+        padding: 1.5rem;
+    }
+    
+    .share-social-icons {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+    }
+    
+    .social-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2rem;
+    }
+    
+    .share-copy-link {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .copy-btn {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .share-social-icons {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .social-icon {
+        width: 45px;
+        height: 45px;
+        font-size: 1.1rem;
     }
 }
 </style>
@@ -1048,16 +1351,170 @@ function addToCalendar(tourId) {
 }
 
 function shareTour(tourId) {
-    if (navigator.share) {
-        navigator.share({
-            title: 'Tour Date',
-            text: `Check out this tour date by ${APP_NAME}`,
-            url: window.location.href
-        });
-    } else {
-        navigator.clipboard.writeText(window.location.href);
-        showToast('Link copied to clipboard!', 'success');
+    console.log('🎯 Share button clicked! Tour ID:', tourId);
+    
+    // Get tour details
+    const tourItem = document.querySelector(`[data-tour-id="${tourId}"]`);
+    console.log('🔍 Found tour item:', tourItem);
+    
+    if (!tourItem) {
+        console.error('❌ Tour not found for ID:', tourId);
+        showToast('Tour not found', 'error');
+        return;
     }
+    
+    const tourTitle = tourItem.querySelector('.tour-info h3');
+    const tourVenue = tourItem.querySelector('.tour-venue');
+    const tourLocation = tourItem.querySelector('.tour-location');
+    const tourDate = tourItem.querySelector('.tour-datetime');
+    
+    console.log('📝 Tour elements:', {
+        title: tourTitle,
+        venue: tourVenue,
+        location: tourLocation,
+        date: tourDate
+    });
+    
+    if (!tourTitle || !tourVenue) {
+        console.error('❌ Missing tour information elements');
+        showToast('Tour information incomplete', 'error');
+        return;
+    }
+    
+    const titleText = tourTitle.textContent;
+    const venueText = tourVenue.textContent;
+    const locationText = tourLocation ? tourLocation.textContent.trim() : '';
+    const dateText = tourDate ? tourDate.textContent.trim() : '';
+    
+    console.log('📋 Extracted tour data:', {
+        title: titleText,
+        venue: venueText,
+        location: locationText,
+        date: dateText
+    });
+    
+    const shareText = `${titleText} - ${venueText}, ${locationText} on ${dateText}`;
+    const shareUrl = window.location.href + '#tour-' + tourId;
+    
+    console.log('🔗 Share data:', {
+        text: shareText,
+        url: shareUrl
+    });
+    
+    // Create share popup
+    createSharePopup(titleText, shareText, shareUrl);
+}
+
+function createSharePopup(title, text, url) {
+    console.log('🎬 Creating share popup:', { title, text, url });
+    
+    // Remove existing popup if any
+    const existingPopup = document.querySelector('.share-popup');
+    if (existingPopup) {
+        existingPopup.remove();
+    }
+    
+    // Create popup HTML
+    const popup = document.createElement('div');
+    popup.className = 'share-popup';
+    popup.innerHTML = `
+        <div class="share-popup-overlay" onclick="closeSharePopup()"></div>
+        <div class="share-popup-content">
+            <div class="share-popup-header">
+                <h3>Share "${title}"</h3>
+                <button class="share-popup-close" onclick="closeSharePopup()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="share-popup-body">
+                <div class="share-social-icons">
+                    <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}" 
+                       target="_blank" class="social-icon facebook" title="Share on Facebook">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}" 
+                       target="_blank" class="social-icon twitter" title="Share on Twitter">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}" 
+                       target="_blank" class="social-icon whatsapp" title="Share on WhatsApp">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
+                    <a href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}" 
+                       target="_blank" class="social-icon linkedin" title="Share on LinkedIn">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
+                    <a href="https://www.instagram.com/" 
+                       target="_blank" class="social-icon instagram" title="Share on Instagram" 
+                       onclick="showInstagramInfo(event)">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(text + ' ' + url)}" 
+                       class="social-icon email" title="Share via Email">
+                        <i class="fas fa-envelope"></i>
+                    </a>
+                </div>
+                <div class="share-copy-link">
+                    <input type="text" readonly value="${url}" id="shareUrlInput">
+                    <button class="copy-btn" onclick="copyShareUrl()">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    console.log('📦 Popup HTML created');
+    
+    // Add popup to page
+    document.body.appendChild(popup);
+    console.log('✅ Popup added to body');
+    
+    // Show popup with animation
+    setTimeout(() => {
+        popup.classList.add('show');
+        console.log('🎬 Popup should be visible now');
+    }, 10);
+}
+
+function closeSharePopup() {
+    console.log('🔴 Closing share popup');
+    const popup = document.querySelector('.share-popup');
+    if (popup) {
+        popup.classList.remove('show');
+        setTimeout(() => {
+            popup.remove();
+            console.log('✅ Popup removed');
+        }, 300);
+    }
+}
+
+function copyShareUrl() {
+    console.log('📋 Copying share URL');
+    const input = document.getElementById('shareUrlInput');
+    if (input) {
+        input.select();
+        document.execCommand('copy');
+        console.log('✅ URL copied to clipboard');
+        showToast('Link copied to clipboard!', 'success');
+        
+        // Change button text temporarily
+        const copyBtn = document.querySelector('.copy-btn');
+        if (copyBtn) {
+            const originalHTML = copyBtn.innerHTML;
+            copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            setTimeout(() => {
+                copyBtn.innerHTML = originalHTML;
+            }, 2000);
+        }
+    } else {
+        console.error('❌ Share URL input not found');
+    }
+}
+
+function showInstagramInfo(event) {
+    event.preventDefault();
+    showToast('Instagram doesn\'t support direct sharing. Copy the link and share it in your Instagram story!', 'info');
 }
 
 function viewPhotos(tourId) {
