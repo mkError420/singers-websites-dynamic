@@ -347,7 +347,7 @@ require_once __DIR__ . '/../includes/header.php';
         .admin-nav a:hover,
         .admin-nav a.active {
             background: var(--dark-tertiary);
-            color: var(--primary-color);
+            color: #000000;
             transform: translateX(5px);
         }
         

@@ -86,19 +86,14 @@ $albums = fetchAll($albums_query);
         .admin-nav a:hover,
         .admin-nav a.active {
             background: var(--dark-tertiary);
-            color: var(--primary-color);
+            color: #000000;
         }
         
         .admin-content {
             flex: 1;
-            margin-left: 0;
             padding: 2rem;
-            background: transparent;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            padding-top: 4rem;
+            background: var(--dark-bg);
         }
         
         .admin-header {
@@ -123,10 +118,7 @@ $albums = fetchAll($albums_query);
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
             gap: 2rem;
-            margin: 0 auto;
-            max-width: 1200px;
             width: 100%;
-            justify-content: center;
         }
         
         .album-card {

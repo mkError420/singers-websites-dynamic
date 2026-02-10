@@ -60,29 +60,59 @@ if (isset($_GET['toggled']) && $_GET['toggled'] == 1) {
     <link rel="stylesheet" href="<?php echo APP_URL; ?>/assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .admin-container {
-            display: flex;
+        .admin-content {
+            flex: 1;
+            margin-left: 0;
+            padding: 2rem;
+            background: transparent;
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
         
-        .admin-sidebar {
-            width: 250px;
-            background: var(--dark-secondary);
-            padding: 2rem 0;
-            border-right: 1px solid var(--border-color);
-        }
-        
-        .admin-logo {
-            text-align: center;
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 2rem;
-            padding: 0 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .admin-logo h2 {
+        .admin-header h1 {
+            color: var(--text-primary);
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0;
+            flex: 1;
+        }
+        
+        .admin-user {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .admin-user:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        .admin-user i {
+            font-size: 1.2rem;
             color: var(--primary-color);
-            font-size: 1.5rem;
         }
         
+        /* Navigation Styles */
         .admin-nav {
             list-style: none;
         }
@@ -107,34 +137,86 @@ if (isset($_GET['toggled']) && $_GET['toggled'] == 1) {
             color: #000000;
         }
         
-        .admin-content {
-            flex: 1;
-            margin-left: 0;
-            padding: 2rem;
-            background: transparent;
-            min-height: 100vh;
+        .stats-cards {
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
-        }
-        
-        .admin-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-        }
-        
-        .admin-header h1 {
-            color: var(--text-primary);
-        }
-        
-        .admin-user {
-            display: flex;
-            align-items: center;
             gap: 1rem;
+            margin: 0 auto 2rem auto;
+            width: fit-content;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .stat-card {
+            background: var(--dark-secondary);
+            border-radius: 6px;
+            padding: 0.75rem;
+            text-align: center;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            flex: 0 0 auto;
+            width: 120px;
+            min-width: 120px;
+            max-width: 120px;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        .stat-number {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.15rem;
+        }
+        
+        .stat-label {
             color: var(--text-secondary);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        
+        .total-subscribers {
+            border-left: 4px solid var(--primary-color);
+            position: relative;
+            z-index: 11;
+        }
+        
+        .active-subscribers {
+            border-left: 4px solid var(--success-color);
+            position: relative;
+            z-index: 11;
+        }
+        
+        .inactive-subscribers {
+            border-left: 4px solid var(--text-muted);
+            position: relative;
+            z-index: 11;
+        }
+        
+        .export-btn {
+            background: var(--primary-color);
+            color: var(--text-primary);
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            display: inline-block;
+        }
+        
+        .export-btn:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
         }
         
         .subscribers-table {
@@ -235,10 +317,11 @@ if (isset($_GET['toggled']) && $_GET['toggled'] == 1) {
         
         .status-badge {
             display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 15px;
-            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
             font-weight: 500;
+            text-transform: uppercase;
         }
         
         .status-badge.active {
@@ -360,9 +443,165 @@ if (isset($_GET['toggled']) && $_GET['toggled'] == 1) {
                 </div>
             </div>
             
-            <a href="export-subscribers.php" class="export-btn">
+            <a href="export-subscribers.php" class="export-btn" onclick="handleExport(event)">
                 <i class="fas fa-download"></i> Export Subscribers
             </a>
+            
+            <script>
+            function handleExport(event) {
+                event.preventDefault();
+                
+                // Show loading state
+                const btn = event.currentTarget;
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
+                btn.style.opacity = '0.7';
+                btn.style.pointerEvents = 'none';
+                
+                // Create export request
+                fetch('export-subscribers.php', {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Get filename from response headers
+                        const contentDisposition = response.headers.get('Content-Disposition');
+                        let filename = 'newsletter_subscribers.csv';
+                        
+                        if (contentDisposition) {
+                            const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                            if (filenameMatch && filenameMatch[1]) {
+                                filename = filenameMatch[1].replace(/['"]/g, '');
+                            }
+                        }
+                        
+                        // Create download link
+                        return response.blob().then(blob => {
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = filename;
+                            document.body.appendChild(a);
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                            document.body.removeChild(a);
+                            
+                            // Show success message
+                            showExportSuccess();
+                        });
+                    } else {
+                        throw new Error('Export failed');
+                    }
+                })
+                .catch(error => {
+                    console.error('Export error:', error);
+                    showExportError();
+                })
+                .finally(() => {
+                    // Reset button state
+                    btn.innerHTML = originalHTML;
+                    btn.style.opacity = '1';
+                    btn.style.pointerEvents = 'auto';
+                });
+            }
+            
+            function showExportSuccess() {
+                // Create temporary success message
+                const successDiv = document.createElement('div');
+                successDiv.className = 'export-success';
+                successDiv.innerHTML = `
+                    <i class="fas fa-check-circle"></i>
+                    <span>Subscribers exported successfully!</span>
+                `;
+                successDiv.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: linear-gradient(135deg, #28a745, #20c997);
+                    color: white;
+                    padding: 15px 20px;
+                    border-radius: 10px;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    font-weight: 600;
+                    z-index: 9999;
+                    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+                    opacity: 0;
+                    transform: translateX(100%);
+                    transition: all 0.3s ease;
+                `;
+                
+                document.body.appendChild(successDiv);
+                
+                // Animate in
+                setTimeout(() => {
+                    successDiv.style.opacity = '1';
+                    successDiv.style.transform = 'translateX(0)';
+                }, 10);
+                
+                // Remove after 3 seconds
+                setTimeout(() => {
+                    successDiv.style.opacity = '0';
+                    successDiv.style.transform = 'translateX(100%)';
+                    setTimeout(() => {
+                        if (document.body.contains(successDiv)) {
+                            document.body.removeChild(successDiv);
+                        }
+                    }, 300);
+                }, 3000);
+            }
+            
+            function showExportError() {
+                // Create temporary error message
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'export-error';
+                errorDiv.innerHTML = `
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>Export failed. Please try again.</span>
+                `;
+                errorDiv.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: linear-gradient(135deg, #dc3545, #c82333);
+                    color: white;
+                    padding: 15px 20px;
+                    border-radius: 10px;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    font-weight: 600;
+                    z-index: 9999;
+                    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+                    opacity: 0;
+                    transform: translateX(100%);
+                    transition: all 0.3s ease;
+                `;
+                
+                document.body.appendChild(errorDiv);
+                
+                // Animate in
+                setTimeout(() => {
+                    errorDiv.style.opacity = '1';
+                    errorDiv.style.transform = 'translateX(0)';
+                }, 10);
+                
+                // Remove after 3 seconds
+                setTimeout(() => {
+                    errorDiv.style.opacity = '0';
+                    errorDiv.style.transform = 'translateX(100%)';
+                    setTimeout(() => {
+                        if (document.body.contains(errorDiv)) {
+                            document.body.removeChild(errorDiv);
+                        }
+                    }, 300);
+                }, 3000);
+            }
+            </script>
             
             <?php if (!empty($all_subscribers)): ?>
                 <div class="subscribers-table">
